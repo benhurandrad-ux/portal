@@ -64,7 +64,20 @@ new MutationObserver(() => { clearTimeout(window._lt); window._lt = setTimeout(l
 /* ===== logo da empresa ===== */
 const logoSrc = co => co?.logo_url ? publicUrl('logos', co.logo_url) : null;
 function logoPill(co, big) { const u = logoSrc(co); return u ? `<span class="logo-pill ${big ? 'big' : ''}"><img src="${esc(u)}" alt="${esc(co.name || '')}"></span>` : ''; }
+/* logo com fundo branco/claro -> PNG transparente e recortado (roda no navegador) */
+async function logoToTransparentPng(file) { if (/svg/i.test(file.type)) return file; const url = URL.createObjectURL(file);
+  try { const img = await new Promise((ok, err) => { const i = new Image(); i.onload = () => ok(i); i.onerror = err; i.src = url; });
+    const max = 1600, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight)); const W = Math.round(img.naturalWidth * sc), H = Math.round(img.naturalHeight * sc);
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const cx = cv.getContext('2d'); cx.drawImage(img, 0, 0, W, H); const d = cx.getImageData(0, 0, W, H), p = d.data;
+    const corner = (x, y) => { const i = (y * W + x) * 4; return p[i + 3] > 250 && Math.min(p[i], p[i + 1], p[i + 2]) > 235; };
+    const whiteBg = [corner(0, 0), corner(W - 1, 0), corner(0, H - 1), corner(W - 1, H - 1)].filter(Boolean).length >= 3;
+    if (whiteBg) for (let i = 0; i < p.length; i += 4) { const a = Math.max(255 - p[i], 255 - p[i + 1], 255 - p[i + 2]); if (a <= 6) { p[i + 3] = 0; continue; } const af = a / 255; for (let k = 0; k < 3; k++) p[i + k] = Math.max(0, Math.min(255, Math.round((p[i + k] - 255 * (1 - af)) / af))); p[i + 3] = Math.round(p[i + 3] * af); }
+    let x0 = W, y0 = H, x1 = -1, y1 = -1; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (p[(y * W + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    cx.putImageData(d, 0, 0); if (x1 < 0) return file; const out = document.createElement('canvas'); out.width = x1 - x0 + 1; out.height = y1 - y0 + 1; out.getContext('2d').drawImage(cv, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
+    const blob = await new Promise(r => out.toBlob(r, 'image/png')); return new File([blob], (file.name.replace(/\.[^.]+$/, '') || 'logo') + '.png', { type: 'image/png' });
+  } catch (e) { console.warn(e); return file; } finally { URL.revokeObjectURL(url); } }
 async function uploadCompanyLogo(companyId, file) { if (!file || !(file.type || '').startsWith('image/')) { toast('Envie uma imagem (PNG, JPG, SVG ou WEBP)', 'bad'); return null; }
+  file = await logoToTransparentPng(file);
   const ext = (file.name.split('.').pop() || 'png').toLowerCase(); const path = `${companyId}/logo_${Date.now()}.${ext}`;
   const up = await sb.storage.from('logos').upload(path, file, { upsert: true, contentType: file.type }); if (up.error) { toast('Logo: ' + up.error.message, 'bad'); return null; }
   const { error } = await sb.from('companies').update({ logo_url: path }).eq('id', companyId); if (error) { toast(error.message, 'bad'); return null; } return path; }

@@ -1,1 +1,1 @@
-v1.3 2026-09-25 logo da empresa ao vivo
+v1.4 2026-09-25 logo PNG transparente
