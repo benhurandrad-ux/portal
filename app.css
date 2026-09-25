@@ -220,3 +220,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .wa-float .tip{position:absolute;right:70px;white-space:nowrap;background:var(--surface2);border:1px solid var(--line2);color:var(--text);font-size:13px;padding:8px 12px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
 .wa-float:hover .tip{opacity:1}
 @media(max-width:820px){.wa-float{right:16px;bottom:16px;width:54px;height:54px}.wa-float .tip{display:none}}
+
+@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+
+.admin-bar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:56;display:flex;align-items:center;gap:10px;background:rgba(18,18,20,.92);backdrop-filter:blur(12px);border:1px solid rgba(217,180,91,.45);border-radius:14px;padding:8px 8px 8px 16px;box-shadow:0 12px 40px rgba(0,0,0,.5);font-size:13px;color:var(--muted);max-width:calc(100vw - 110px)}
+.admin-bar select{width:auto;padding:6px 8px;font-size:13px;max-width:180px}
+.admin-bar .btn{white-space:nowrap}
+@media(max-width:820px){.admin-bar{left:16px;right:84px;transform:none;bottom:16px}.admin-bar>span{display:none}}

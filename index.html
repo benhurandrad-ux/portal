@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel do Cliente</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="app.css?v=7">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js?v=7"></script><script src="core.js?v=7"></script></head>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="app.css?v=9">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js?v=9"></script><script src="core.js?v=9"></script></head>
 <body>
 <nav class="nav" id="nav">
   <div class="brand"><div class="mark"></div><b>BEN HUR ANDRADE</b><span class="co" id="coName"></span></div>
@@ -31,6 +31,7 @@ async function boot() {
   $('#tabs').innerHTML = TABS.filter(t => can(t[2])).map(t => `<a data-r="${t[0]}">${t[1]}</a>`).join('');
   $('#tabs').addEventListener('click', e => { const a = e.target.closest('a'); if (a) location.hash = a.dataset.r; });
   await mountWhatsApp(CO.name);
+  if (ME.is_super_admin) { const bar = document.createElement('div'); bar.className = 'admin-bar'; bar.innerHTML = `<span>Você está vendo como cliente</span><select onchange="localStorage.setItem('portal_company',this.value);location.reload()">${ME.companies.map(c => `<option value="${c.id}" ${c.id === CO.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select><a class="btn sm primary" href="admin.html${localStorage.getItem('admin_back') || '#empresa/' + CO.id + '/resumo'}">‹ Voltar ao admin</a>`; document.body.appendChild(bar); }
   addEventListener('hashchange', route); route();
   addEventListener('scroll', () => $('#nav').classList.toggle('solid', scrollY > 40), { passive: true });
   $('#avatarBtn').addEventListener('click', openProfile); $('#scrim').addEventListener('click', closeDrawer);
@@ -43,15 +44,16 @@ function closeDrawer() { $('#drawer').classList.remove('on'); $('#scrim').classL
 /* ===== dados ===== */
 async function loadCore() {
   const since = new Date(); since.setMonth(since.getMonth() - 1); since.setDate(1);
-  const [ct, inv, cr, rm, mt, off] = await Promise.all([
+  const [ct, inv, cr, rm, mt, off, cof] = await Promise.all([
     can('financial') ? sb.from('contracts').select('*, contract_services(service_key)').eq('company_id', CO.id).order('created_at', { ascending: false }).limit(1) : { data: [] },
     can('financial') ? sb.from('invoices').select('*').eq('company_id', CO.id).order('due_date') : { data: [] },
     can('creatives_view') ? sb.from('creatives').select('*').eq('company_id', CO.id).order('created_at', { ascending: false }).limit(60) : { data: [] },
     can('roadmap') ? sb.from('roadmap_phases').select('*, roadmap_milestones(*)').eq('company_id', CO.id).order('sort') : { data: [] },
     can('results_social|results_ads') ? sb.from('metrics_daily').select('source,metric,date,value').eq('company_id', CO.id).order('date') : { data: [] },
-    sb.from('services_catalog').select('*').eq('active', true).order('sort')
+    sb.from('services_catalog').select('*').eq('active', true).order('sort'),
+    can('offers') ? sb.from('company_offers').select('*').eq('company_id', CO.id).eq('active', true).order('sort') : { data: [] }
   ]);
-  CTX = { contract: ct.data?.[0] || null, invoices: inv.data || [], creatives: cr.data || [], phases: rm.data || [], metrics: mt.data || [], catalog: off.data || [] };
+  CTX = { contract: ct.data?.[0] || null, invoices: inv.data || [], creatives: cr.data || [], phases: rm.data || [], metrics: mt.data || [], catalog: off.data || [], offers: cof.data || [] };
   CTX.contracted = new Set((CTX.contract?.contract_services || []).map(s => s.service_key));
   CTX.thumbs = await signedUrls('creatives', CTX.creatives.map(c => c.thumb_path || c.storage_path));
   return CTX;
@@ -81,7 +83,7 @@ async function home() {
   if (pending.length && can('creatives_approve')) todos.push(`<div class="todo" onclick="location.hash='criativos'"><div class="ic a">✦</div><div><b>${pending.length} criativo${pending.length > 1 ? 's' : ''} aguardando aprovação</b><p>${esc(pending.slice(0, 2).map(c => c.title).join(', '))}</p></div><span class="go">›</span></div>`);
   if (nextInv && can('financial')) { const d = daysUntil(nextInv.due_date); todos.push(`<div class="todo" onclick="location.hash='financeiro'"><div class="ic ${d < 0 ? 'w' : 'g'}">$</div><div><b>${d < 0 ? 'Mensalidade em atraso' : d <= 5 ? 'Mensalidade vence em ' + d + ' dia' + (d === 1 ? '' : 's') : 'Próxima mensalidade em ' + d + ' dias'}</b><p>${money(nextInv.amount)} · vencimento ${dtShort(nextInv.due_date)} · Pix</p></div><span class="go">›</span></div>`); }
   if (can('nps')) todos.push(`<div class="todo" onclick="openNps()"><div class="ic g">★</div><div><b>Como está sendo o trabalho?</b><p>Pesquisa de 2 minutos · sua opinião muda o plano</p></div><span class="go">›</span></div>`);
-  const offers = CTX.catalog.filter(s => !CTX.contracted.has(s.key));
+  const offers = CTX.offers;
   const hasMetrics = CTX.metrics.length > 0;
   view.innerHTML = `
   <section class="billboard"><div class="art"><div class="glow"></div><div class="grid"></div>
@@ -113,7 +115,8 @@ function posterCard(c) {
   return `<div class="poster" onclick="openCreative('${c.id}')">${url && isImg ? `<img src="${url}" alt="">` : url && isVideo ? `<video src="${url}#t=0.5" muted preload="metadata"></video>` : `<div class="file">${isVideo ? '🎬' : '📄'}</div>`}<span class="tag">${KIND_LABEL[c.kind] || 'Arquivo'}</span><i class="status" style="background:${col}"></i>${isVideo ? '<div class="play">▶</div>' : ''}<div class="meta"><b>${esc(c.title)}</b><span>${STATUS_LABEL[c.status]}${c.folder ? ' · ' + esc(c.folder) : ''}</span></div></div>`;
 }
 function phaseCard(p, i) { return `<div class="ep ${p.status}"><div class="num">${String(p.sort || i + 1).padStart(2, '0')}</div><b>${esc(p.title)}</b><p>${esc(p.description || '')}</p><div class="bar"><i data-w="${p.progress}"></i></div><div class="foot"><span class="mono" style="${p.status === 'current' ? 'color:var(--accent2)' : ''}">${{ done: 'Concluída', current: 'Em andamento · ' + p.progress + '%', next: 'Próxima' }[p.status]}</span><span class="mono">${p.start_date ? dt(p.start_date).slice(3) : ''}</span></div></div>`; }
-function offerCard(s) { const parc = Number(s.price_from) / (s.installments || 3); return `<div class="offer"><span class="mono" style="color:${CATEGORY_COLOR[s.category] || 'var(--accent)'}">${esc(s.category || '')}</span><b>${esc(s.label)}</b><p>${esc(s.description || '')}</p><div class="price"><small>até</small>${s.installments || 3}x <span>de ${money(parc)}</span><small>no cartão${s.price_type === 'monthly' ? ' · mês' : ''}</small></div><p class="full">ou ${money(s.price_from)} à vista${s.price_type === 'monthly' ? ' /mês' : ''}</p><a class="wa" target="_blank" href="${waLink(CO.name, s.label)}" onclick="sb.from('offer_clicks').insert({company_id:CO.id,user_id:ME.user_id,service_key:'${s.key}'}).then(()=>{})">Quero contratar</a></div>`; }
+function offerCard(o) { const n = o.installments || 1, parc = Number(o.price) / n; const priceHtml = n > 1 ? `<div class="price"><small>até</small>${n}x <span>de ${money(parc)}</span><small>no cartão${o.price_type === 'monthly' ? ' · mês' : ''}</small></div><p class="full">ou ${money(o.price)} à vista${o.price_type === 'monthly' ? ' /mês' : ''}</p>` : `<div class="price">${money(o.price)}<small>${o.price_type === 'monthly' ? '/mês' : 'único'}</small></div><p class="full"></p>`;
+  return `<div class="offer"><span class="mono" style="color:${CATEGORY_COLOR[o.category] || 'var(--accent)'}">${esc(o.category || '')}</span><b>${esc(o.label)}</b><p>${esc(o.description || '')}</p>${priceHtml}<a class="wa" target="_blank" href="${waLink(CO.name, o.label)}" onclick="sb.from('offer_clicks').insert({company_id:CO.id,user_id:ME.user_id,offer_id:'${o.id}',service_key:${o.service_key ? `'${o.service_key}'` : 'null'}}).then(()=>{})">Quero contratar</a></div>`; }
 function animate() {
   const line = $('#line'), area = $('#area'), dot = $('#dot'); if (line) { const L = line.getTotalLength(); line.style.strokeDasharray = L; line.style.strokeDashoffset = L; line.style.transition = 'stroke-dashoffset 2.2s cubic-bezier(.2,.8,.2,1)'; requestAnimationFrame(() => { line.style.strokeDashoffset = 0; setTimeout(() => { area.style.transition = 'opacity 1s'; area.style.opacity = 1; dot.style.opacity = 1; }, 1200); }); }
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { $$('[data-count]', e.target).forEach(countUp); $$('.bar i', e.target).forEach(b => b.style.width = b.dataset.w + '%'); io.unobserve(e.target); } }), { threshold: .2 });

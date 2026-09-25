@@ -1,1 +1,1 @@
-v0.8 2026-09-25 faturas por mes
+v0.9 2026-09-25 recibo pdf + outubro + servicos por cliente + voltar ao admin
