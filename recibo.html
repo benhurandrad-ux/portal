@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recibo · Ben Hur Andrade</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script><script src="config.js?v=9"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script><script src="config.js?v=13"></script>
 <style>
 :root{--gold:#D9B45B;--gold2:#8A6D1F;--ink:#1c1b18;--ink2:#4a4741;--muted:#8d887c;--line:#e7e3d8;--black:#0b0b0b}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{background:#2a2926;font-family:Poppins,sans-serif;color:var(--ink);padding:24px}
@@ -20,7 +20,7 @@ p.txt{font-size:13.5px;line-height:1.7;text-align:justify}
 .actions{position:fixed;right:24px;bottom:24px;display:flex;gap:10px}.btn{background:var(--gold);color:#141006;border:0;border-radius:10px;padding:12px 18px;font:600 14px Poppins;cursor:pointer}.btn.ghost{background:#fff;color:#1c1b18;border:1px solid var(--line)}.btn:disabled{opacity:.6}
 @media print{body{background:#fff;padding:0}.sheet{box-shadow:none;max-width:none;border-radius:0}.actions{display:none}@page{size:A4;margin:12mm}}
 @media(max-width:640px){.sheet{padding:22px}.grid{grid-template-columns:1fr}.val b{font-size:24px}}
-</style></head><body><div class="sheet" id="s">Carregando recibo...</div><div class="actions"><button class="btn ghost" onclick="window.print()">Imprimir</button><button class="btn" id="dl" onclick="baixarPDF()">Baixar PDF</button></div>
+</style><script>(function(){try{fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(v){v=(v||"").split(" ")[0].trim();var k="portal_ver",o=localStorage.getItem(k);if(!v)return;if(o&&o!==v&&!/[?&]_v=/.test(location.search.replace("_v="+v,""))){localStorage.setItem(k,v);var u=new URL(location.href);u.searchParams.set("_v",v);location.replace(u.toString());}else localStorage.setItem(k,v);})}catch(e){}})();</script></head><body><div class="sheet" id="s">Carregando recibo...</div><div class="actions"><button class="btn ghost" onclick="window.print()">Imprimir</button><button class="btn" id="dl" onclick="baixarPDF()">Baixar PDF</button></div>
 <script>
 const sb = supabase.createClient(PORTAL.url, PORTAL.anonKey); const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }); const dt = s => new Date(s).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });

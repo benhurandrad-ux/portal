@@ -15,7 +15,7 @@ const toast = (msg, kind='') => { let t = $('#toast'); if (!t) { t = document.cr
 const KIND_LABEL = { post:'Post', carousel:'Carrossel', reel:'Reels', story:'Story', ad:'Anúncio', video:'Vídeo', site:'Site', other:'Arquivo' };
 const INVOICE_LABEL = { open:'Em aberto', review:'Comprovante em análise', paid:'Paga', overdue:'Atrasada', cancelled:'Cancelada' };
 const STATUS_LABEL = { draft:'Rascunho', pending:'Aguardando aprovação', approved:'Aprovado', changes:'Pedido de ajuste', published:'Publicado' };
-const MODULES = [['overview','Tela inicial'],['results_social','Resultados das redes'],['results_ads','Resultados de tráfego'],['leads','Leads do mês'],['creatives_view','Ver criativos'],['creatives_approve','Aprovar criativos'],['roadmap','Quadro evolutivo'],['financial','Financeiro e contrato'],['requests','Solicitações'],['nps','Pesquisas'],['documents','Documentos da marca'],['offers','Serviços disponíveis']];
+const MODULES = [['overview','Tela inicial'],['results_social','Resultados das redes'],['results_ads','Resultados de tráfego'],['leads','Leads do mês'],['creatives_view','Ver criativos'],['creatives_approve','Aprovar criativos'],['roadmap','Quadro evolutivo'],['financial','Financeiro e contrato'],['requests','Solicitações'],['nps','Pesquisas'],['documents','Documentos da marca'],['credentials','Acessos e senhas'],['offers','Serviços disponíveis']];
 const CATEGORY_COLOR = { trafego:'var(--c-ads)', social:'var(--c-social)', design:'var(--c-design)', web:'var(--c-web)', estrategia:'var(--accent)', comercial:'var(--c-comercial)', marca:'var(--accent)', copy:'var(--c-design)', video:'var(--c-video)' };
 const invoiceStatus = i => (i.status === 'open' && i.due_date < new Date().toISOString().slice(0,10)) ? 'overdue' : i.status;
 
@@ -46,3 +46,16 @@ async function mountWhatsApp(companyName) { try { const { data } = await sb.rpc(
   let a = document.getElementById('waFloat'); if (!a) { a = document.createElement('a'); a.id = 'waFloat'; a.className = 'wa-float'; a.target = '_blank'; a.rel = 'noopener'; a.setAttribute('aria-label', 'Falar no WhatsApp'); document.body.appendChild(a); }
   a.href = `https://wa.me/${num}?text=` + encodeURIComponent(msg); a.innerHTML = WA_SVG + '<span class="tip">Falar com o Ben no WhatsApp</span>'; }
 function slug(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'_').slice(0,80); }
+
+/* ===== pastas de criativos ===== */
+const folderOf = c => c.folder || 'Sem pasta';
+function groupFolders(items) { const m = {}; items.forEach(c => { const f = folderOf(c); (m[f] = m[f] || []).push(c); });
+  return Object.entries(m).map(([name, arr]) => ({ name, items: arr, cover: arr.find(c => (c.mime || '').startsWith('image/')) || arr[0], pending: arr.filter(c => c.status === 'pending').length, last: arr.map(c => c.created_at).sort().pop() })).sort((a, b) => b.last.localeCompare(a.last)); }
+function folderGrid(groups, urls, openFn) { return `<div class="folders">${groups.map(g => { const u = urls[g.cover?.thumb_path || g.cover?.storage_path]; const img = (g.cover?.mime || '').startsWith('image/');
+  const kinds = [...new Set(g.items.map(c => KIND_LABEL[c.kind] || 'Arquivo'))].slice(0, 3).join(' · ');
+  return `<div class="folder" onclick="${openFn}(${JSON.stringify(g.name).replace(/"/g, '&quot;')})"><div class="folder-cover">${u && img ? `<img src="${u}" alt="">` : `<div class="file">📁</div>`}<span class="folder-n">${g.items.length}</span></div><div class="folder-m"><b>📁 ${esc(g.name)}</b><span>${kinds} · ${dtShort(g.last.slice(0, 10))}</span>${g.pending ? `<em class="badge warn">${g.pending} para aprovar</em>` : '<em class="badge ok">✓ em dia</em>'}</div></div>`; }).join('')}</div>`; }
+function folderCrumb(name, backFn, extra = '') { return `<div class="toolbar" style="margin:6px 0 14px"><a class="btn sm ghost" onclick="${backFn}()">‹ Todas as pastas</a><h3 style="margin:0;font-size:17px">📁 ${esc(name)}</h3><span class="sp"></span>${extra}</div>`; }
+
+/* tabelas: rótulo de cada célula (vira cartão no celular) */
+function labelTables(root = document) { root.querySelectorAll('table').forEach(t => { const hs = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim()); if (!hs.length) return; t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if (!td.hasAttribute('data-l')) td.setAttribute('data-l', hs[i] || ''); })); }); }
+new MutationObserver(() => { clearTimeout(window._lt); window._lt = setTimeout(labelTables, 30); }).observe(document.documentElement, { childList: true, subtree: true });

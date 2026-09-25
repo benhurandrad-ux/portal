@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel do Cliente</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="app.css?v=9">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js?v=9"></script><script src="core.js?v=9"></script></head>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="app.css?v=13">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js?v=13"></script><script src="core.js?v=13"></script><script src="cofre.js?v=13"></script><script>(function(){try{fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(v){v=(v||"").split(" ")[0].trim();var k="portal_ver",o=localStorage.getItem(k);if(!v)return;if(o&&o!==v&&!/[?&]_v=/.test(location.search.replace("_v="+v,""))){localStorage.setItem(k,v);var u=new URL(location.href);u.searchParams.set("_v",v);location.replace(u.toString());}else localStorage.setItem(k,v);})}catch(e){}})();</script></head>
 <body>
 <nav class="nav" id="nav">
   <div class="brand"><div class="mark"></div><b>BEN HUR ANDRADE</b><span class="co" id="coName"></span></div>
@@ -12,7 +12,7 @@
 <aside class="drawer" id="drawer"></aside>
 <script>
 let ME, CO, CTX = {};
-const TABS = [['inicio','Início','overview'],['resultados','Resultados','results_social|results_ads|leads'],['criativos','Criativos','creatives_view'],['evolucao','Evolução','roadmap'],['financeiro','Financeiro','financial'],['solicitacoes','Solicitações','requests'],['documentos','Documentos','documents']];
+const TABS = [['inicio','Início','overview'],['resultados','Resultados','results_social|results_ads|leads'],['criativos','Criativos','creatives_view'],['evolucao','Evolução','roadmap'],['financeiro','Financeiro','financial'],['solicitacoes','Solicitações','requests'],['documentos','Documentos','documents'],['acessos','Acessos','credentials']];
 const can = m => ME.is_super_admin || m.split('|').some(k => CO.modules.includes(k));
 const view = $('#view');
 
@@ -37,7 +37,7 @@ async function boot() {
   $('#avatarBtn').addEventListener('click', openProfile); $('#scrim').addEventListener('click', closeDrawer);
   loadNotifications();
 }
-function route() { const r = (location.hash || '#inicio').slice(1); $$('#tabs a').forEach(a => a.classList.toggle('on', a.dataset.r === r)); ({ inicio: home, resultados: results, criativos: creatives, evolucao: roadmap, financeiro: financial, solicitacoes: requests, documentos: documents }[r] || home)(); window.scrollTo(0, 0); }
+function route() { const r = (location.hash || '#inicio').slice(1); $$('#tabs a').forEach(a => a.classList.toggle('on', a.dataset.r === r)); ({ inicio: home, resultados: results, criativos: creatives, evolucao: roadmap, financeiro: financial, solicitacoes: requests, documentos: documents, acessos: acessos }[r] || home)(); window.scrollTo(0, 0); }
 function openDrawer(html) { $('#drawer').innerHTML = html; $('#drawer').classList.add('on'); $('#scrim').classList.add('on'); }
 function closeDrawer() { $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); }
 
@@ -47,7 +47,7 @@ async function loadCore() {
   const [ct, inv, cr, rm, mt, off, cof] = await Promise.all([
     can('financial') ? sb.from('contracts').select('*, contract_services(service_key)').eq('company_id', CO.id).order('created_at', { ascending: false }).limit(1) : { data: [] },
     can('financial') ? sb.from('invoices').select('*').eq('company_id', CO.id).order('due_date') : { data: [] },
-    can('creatives_view') ? sb.from('creatives').select('*').eq('company_id', CO.id).order('created_at', { ascending: false }).limit(60) : { data: [] },
+    can('creatives_view') ? sb.from('creatives').select('*').eq('company_id', CO.id).order('created_at', { ascending: false }).limit(1000) : { data: [] },
     can('roadmap') ? sb.from('roadmap_phases').select('*, roadmap_milestones(*)').eq('company_id', CO.id).order('sort') : { data: [] },
     can('results_social|results_ads') ? sb.from('metrics_daily').select('source,metric,date,value').eq('company_id', CO.id).order('date') : { data: [] },
     sb.from('services_catalog').select('*').eq('active', true).order('sort'),
@@ -138,10 +138,16 @@ async function results() {
 }
 /* ===== CRIATIVOS ===== */
 async function creatives() {
-  await loadCore(); const folders = [...new Set(CTX.creatives.map(c => c.folder || 'Geral'))];
-  view.innerHTML = `<div class="wrap"><div class="page-title">Criativos</div><div class="page-sub">Tudo que foi produzido para ${esc(CO.name)}. ${can('creatives_approve') ? 'Clique para aprovar ou pedir ajuste.' : ''}</div>
-  ${CTX.creatives.length ? folders.map(f => `<h3 style="margin:22px 0 12px;font-size:16px">${esc(f)}</h3><div class="thumbs">${CTX.creatives.filter(c => (c.folder || 'Geral') === f).map(posterCard).join('')}</div>`).join('') : '<div class="card empty"><b>Nenhum criativo ainda</b>Assim que a equipe enviar, aparece aqui.</div>'}</div>`;
-}
+  await loadCore(); const groups = groupFolders(CTX.creatives); const F = window._cliFolder && groups.some(g => g.name === window._cliFolder) ? window._cliFolder : null;
+  const head = `<div class="page-title">Criativos</div><div class="page-sub">Tudo que foi produzido para ${esc(CO.name)}, organizado por pasta. ${can('creatives_approve') ? 'Clique numa arte para aprovar ou pedir ajuste.' : ''}</div>`;
+  if (!CTX.creatives.length) { view.innerHTML = `<div class="wrap">${head}<div class="card empty"><b>Nenhum criativo ainda</b>Assim que a equipe enviar, aparece aqui.</div></div>`; return; }
+  if (!F) { view.innerHTML = `<div class="wrap">${head}${folderGrid(groups, CTX.thumbs, 'openCliFolder')}</div>`; return; }
+  const g = groups.find(x => x.name === F); const pend = g.items.filter(c => c.status === 'pending');
+  view.innerHTML = `<div class="wrap">${head}${folderCrumb(F, 'closeCliFolder', pend.length && can('creatives_approve') ? `<button class="btn primary sm" onclick="approveFolder()">Aprovar todos (${pend.length})</button>` : '')}<div class="thumbs">${g.items.map(posterCard).join('')}</div></div>`; }
+function openCliFolder(n) { window._cliFolder = n; creatives(); window.scrollTo(0, 0); }
+function closeCliFolder() { window._cliFolder = null; creatives(); }
+async function approveFolder() { const g = groupFolders(CTX.creatives).find(x => x.name === window._cliFolder); const pend = g.items.filter(c => c.status === 'pending'); if (!confirm('Aprovar as ' + pend.length + ' artes pendentes desta pasta?')) return;
+  const { error } = await sb.from('creative_reviews').insert(pend.map(c => ({ creative_id: c.id, user_id: ME.user_id, action: 'approve', comment: 'Aprovado em lote pela pasta ' + window._cliFolder }))); if (error) return toast(error.message, 'bad'); toast(pend.length + ' artes aprovadas', 'ok'); creatives(); }
 async function openCreative(id) {
   const c = CTX.creatives.find(x => x.id === id); const url = await signedUrl('creatives', c.storage_path); const isVideo = (c.mime || '').startsWith('video/'), isImg = (c.mime || '').startsWith('image/');
   const { data: reviews } = await sb.from('creative_reviews').select('*, profiles:user_id(full_name)').eq('creative_id', id).order('created_at');
@@ -179,6 +185,9 @@ async function documents() { const { data } = await sb.from('documents').select(
   view.innerHTML = `<div class="wrap"><div class="page-title">Documentos e marca</div><div class="page-sub">Logo, cores, fontes, contrato e tudo que é oficial da ${esc(CO.name)}.</div>
   <div class="grid2"><div class="card"><h3>Identidade</h3><div style="display:flex;gap:16px;align-items:center"><div class="logo-prev">${CO.logo_url ? `<img src="${esc(publicUrl('logos', CO.logo_url))}">` : '◎'}</div><div><b>${esc(CO.name)}</b><p style="color:var(--muted);font-size:13px">${esc(brand.fonts?.join(' · ') || 'Fontes a definir')}</p><div class="swatches" style="margin-top:8px">${(brand.colors || []).map(c => `<i style="background:${esc(c)}" title="${esc(c)}"></i>`).join('') || '<span style="color:var(--muted);font-size:12px">Paleta a definir</span>'}</div></div></div>${brand.tone ? `<p style="margin-top:12px;font-size:14px;color:var(--muted)">${esc(brand.tone)}</p>` : ''}</div>
   <div class="card"><h3>Arquivos</h3>${(data || []).length ? data.map(d => `<div class="kv link" onclick="signedUrl('documents','${d.storage_path}').then(u=>window.open(u))"><span>${esc(d.title)}<br><small style="color:var(--hud)">${esc(d.kind || '')} · ${dtShort(d.created_at.slice(0, 10))}</small></span><b>Abrir ›</b></div>`).join('') : '<div class="empty">Nenhum arquivo ainda.</div>'}</div></div></div>`; }
+/* ===== ACESSOS E SENHAS ===== */
+async function acessos() { await credLoad(CO.id); const req = CRED.list.filter(c => c.status === 'requested').length;
+  view.innerHTML = `<div class="wrap"><div class="toolbar"><div><div class="page-title">Acessos e senhas</div><div class="page-sub" style="margin:0">Logins das contas da ${esc(CO.name)} num lugar só, com senha criptografada.${req ? ' ' + req + ' conta(s) sendo criada(s) pela equipe.' : ''}</div></div><span class="sp"></span><button class="btn ghost" onclick="credRequest()">Preciso que criem uma conta</button><button class="btn primary" onclick="credEdit()">+ Adicionar acesso</button></div>${credGrid(false)}</div>`; }
 /* ===== NPS ===== */
 function openNps() { modal(`<h2>De 0 a 10, o quanto você recomendaria o trabalho?</h2><div class="sub">Sua resposta vai direto pro Ben.</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${[...Array(11).keys()].map(n => `<button class="btn ghost" style="width:48px;padding:0" onclick="$$('#modal .btn.ghost').forEach(b=>b.classList.remove('primary'));this.classList.add('primary');window._nps=${n}">${n}</button>`).join('')}</div><label class="f"><span>O que faria virar 10?</span><textarea id="nps_c"></textarea></label><div class="md-actions"><button class="btn ghost" onclick="closeModal()">Depois</button><button class="btn primary" onclick="sendNps()">Enviar</button></div>`); }
 async function sendNps() { if (window._nps == null) return toast('Escolha uma nota', 'bad'); const { error } = await sb.from('nps_responses').insert({ company_id: CO.id, user_id: ME.user_id, score: window._nps, comment: $('#nps_c').value }); if (error) return toast(error.message, 'bad'); closeModal(); toast('Obrigado pela resposta', 'ok'); }
