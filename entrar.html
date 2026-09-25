@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Convite · Painel</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="app.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js"></script><script src="core.js"></script></head>
+<body><div class="auth"><form class="card" id="f" style="width:520px">
+  <div class="brand"><div class="mark"></div><b>BEN HUR ANDRADE</b></div>
+  <h1 id="title">Seu acesso ao painel</h1><p class="sub" id="sub">Carregando convite...</p>
+  <div id="company" class="hidden">
+    <div class="row2"><label class="f"><span>Nome da empresa</span><input id="c_name" required></label><label class="f"><span>CNPJ</span><input id="c_cnpj"></label></div>
+    <div class="row2"><label class="f"><span>Razão social</span><input id="c_legal"></label><label class="f"><span>Segmento</span><input id="c_segment" placeholder="ex.: clínica, proteção veicular"></label></div>
+    <label class="f"><span>Endereço completo</span><input id="c_address"></label>
+    <div class="row3"><label class="f"><span>Cidade</span><input id="c_city"></label><label class="f"><span>UF</span><input id="c_state" maxlength="2"></label><label class="f"><span>CEP</span><input id="c_cep"></label></div>
+    <div class="row2"><label class="f"><span>@ do Instagram</span><input id="c_instagram"></label><label class="f"><span>WhatsApp</span><input id="c_whatsapp"></label></div>
+    <div class="row2"><label class="f"><span>Facebook</span><input id="c_facebook"></label><label class="f"><span>TikTok</span><input id="c_tiktok"></label></div>
+    <label class="f"><span>Site</span><input id="c_website"></label>
+  </div>
+  <div id="user">
+    <label class="f"><span>Seu nome</span><input id="u_name" required></label>
+    <label class="f"><span>Seu e-mail</span><input type="email" id="u_email" required></label>
+    <label class="f"><span>Crie uma senha (mínimo 8 caracteres)</span><input type="password" id="u_pwd" minlength="8" required autocomplete="new-password"></label>
+  </div>
+  <div class="err" id="err"></div>
+  <button class="btn primary" type="submit" id="go">Criar meu acesso</button>
+  <div class="or">ou</div>
+  <button class="btn ghost" type="button" id="google">Entrar com Google</button>
+  <p class="hint">Já tem conta? <a href="login.html" style="color:var(--accent2)">Entrar</a></p>
+</form></div>
+<script>
+const token = new URLSearchParams(location.search).get('token') || localStorage.getItem('portal_token');
+let info = null;
+async function claim() {
+  const c = info.company_id ? null : { name: $('#c_name').value, cnpj: $('#c_cnpj').value, legal_name: $('#c_legal').value, segment: $('#c_segment').value, address: $('#c_address').value, city: $('#c_city').value, state: $('#c_state').value, cep: $('#c_cep').value, instagram: $('#c_instagram').value, whatsapp: $('#c_whatsapp').value, facebook: $('#c_facebook').value, tiktok: $('#c_tiktok').value, website: $('#c_website').value };
+  const { error } = await sb.rpc('claim_onboarding_token', { p_token: token, p_company: c });
+  if (error) { $('#err').textContent = error.message; return false; }
+  localStorage.removeItem('portal_token'); return true;
+}
+(async () => {
+  if (!token) { $('#sub').textContent = 'Este link não tem convite. Peça um novo link para o Ben.'; $('#go').disabled = true; $('#google').disabled = true; return; }
+  const { data } = await sb.rpc('onboarding_token_info', { p_token: token }); info = data;
+  if (!info || !info.valid) { $('#sub').textContent = 'Convite inválido ou expirado. Peça um novo link.'; $('#go').disabled = true; $('#google').disabled = true; return; }
+  localStorage.setItem('portal_token', token);
+  if (info.company_id) { $('#title').textContent = 'Acesso à ' + info.company_name; $('#sub').textContent = info.role === 'company_manager' ? 'Você foi convidado como gerente. Crie seu acesso abaixo.' : 'Você foi convidado como administrador da empresa. Crie seu acesso abaixo.'; }
+  else { $('#title').textContent = 'Cadastre sua empresa'; $('#sub').textContent = 'Preencha os dados da empresa e crie seu acesso de administrador.'; $('#company').classList.remove('hidden'); }
+  if (info.email) $('#u_email').value = info.email; if (info.full_name) $('#u_name').value = info.full_name;
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { $('#user').classList.add('hidden'); $('#google').classList.add('hidden'); $('#go').textContent = 'Entrar na empresa'; $('.or').classList.add('hidden'); }
+})();
+$('#f').addEventListener('submit', async e => { e.preventDefault(); $('#err').textContent = ''; $('#go').disabled = true;
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    const { data, error } = await sb.auth.signUp({ email: $('#u_email').value.trim(), password: $('#u_pwd').value, options: { data: { full_name: $('#u_name').value.trim() } } });
+    if (error) { $('#err').textContent = /already registered/i.test(error.message) ? 'Este e-mail já tem conta. Entre com ele e abra este link de novo.' : error.message; $('#go').disabled = false; return; }
+    if (!data.session) { const { error: e2 } = await sb.auth.signInWithPassword({ email: $('#u_email').value.trim(), password: $('#u_pwd').value }); if (e2) { $('#err').textContent = 'Confirme seu e-mail e entre novamente.'; $('#go').disabled = false; return; } }
+  }
+  if (await claim()) { toast('Acesso criado', 'ok'); setTimeout(() => location.replace('index.html'), 500); } else $('#go').disabled = false; });
+$('#google').addEventListener('click', async () => { await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.href } }); });
+</script></body></html>

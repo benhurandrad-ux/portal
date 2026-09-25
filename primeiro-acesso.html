@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Criar senha · Painel</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="app.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js"></script><script src="core.js"></script></head>
+<body><div class="auth"><form class="card" id="f">
+  <div class="brand"><div class="mark"></div><b>BEN HUR ANDRADE</b></div>
+  <h1 id="title">Crie sua senha</h1><p class="sub" id="sub">Sua senha é temporária. Escolha uma nova para continuar.</p>
+  <label class="f"><span>Nova senha (mínimo 8 caracteres)</span><input type="password" id="p1" autocomplete="new-password" minlength="8" required></label>
+  <label class="f"><span>Repita a nova senha</span><input type="password" id="p2" autocomplete="new-password" minlength="8" required></label>
+  <div class="err" id="err"></div>
+  <button class="btn primary" type="submit">Salvar e entrar</button>
+</form></div>
+<script>
+const recovery = new URLSearchParams(location.search).get('mode') === 'recovery' || location.hash.includes('type=recovery');
+if (recovery) { $('#title').textContent = 'Redefinir senha'; $('#sub').textContent = 'Escolha uma nova senha para a sua conta.'; }
+(async () => { await new Promise(r => setTimeout(r, 600)); const { data: { session } } = await sb.auth.getSession(); if (!session) location.replace('login.html'); })();
+$('#f').addEventListener('submit', async e => { e.preventDefault(); $('#err').textContent = '';
+  if ($('#p1').value !== $('#p2').value) { $('#err').textContent = 'As senhas não conferem.'; return; }
+  const { error } = await sb.auth.updateUser({ password: $('#p1').value }); if (error) { $('#err').textContent = error.message; return; }
+  await sb.rpc('password_changed'); toast('Senha salva', 'ok'); setTimeout(() => location.replace('index.html'), 600); });
+</script></body></html>
