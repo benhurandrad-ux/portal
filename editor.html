@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editor de Contrato</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070707;--bg2:#0c0c0d;--surface:#121214;--surface2:#19191c;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);--text:#f2efe8;--muted:#9a968c;--gold:#d9b45b;--gold2:#8a6d1f;--gold-soft:#F6EFD9;--ink:#1c1b18;--ink2:#4a4741;--pline:#e7e3d8;--black:#0b0b0b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Instrument Sans",system-ui,sans-serif;font-size:14px;height:100vh;display:grid;grid-template-columns:460px 1fr;grid-template-rows:60px 1fr;overflow:hidden}
+header{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:0 20px;border-bottom:1px solid var(--line);background:var(--bg2)}
+header b{letter-spacing:.14em;font-size:12px;color:var(--gold)}
+header .t{font-weight:600}
+header .sp{flex:1}
+.btn{height:36px;padding:0 14px;border-radius:9px;border:1px solid var(--line2);background:var(--surface);color:var(--text);font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn.gold{background:var(--gold);color:#141006;border-color:transparent}
+.btn.sm{height:28px;padding:0 10px;font-size:12px;font-weight:500}
+.btn:hover{filter:brightness(1.1)}
+aside{overflow-y:auto;border-right:1px solid var(--line);padding:16px 16px 60px;background:var(--bg2)}
+main{overflow-y:auto;background:#2a2926;padding:28px}
+.sec{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;background:var(--surface)}
+.sec>h3{display:flex;align-items:center;gap:8px;padding:12px 14px;font-size:13px;font-weight:600;cursor:pointer;user-select:none}
+.sec>h3 .mono{margin-left:auto}
+.sec>h3::before{content:"▸";color:var(--gold);transition:.2s}
+.sec.open>h3::before{transform:rotate(90deg)}
+.sec .body{display:none;padding:0 14px 14px;border-top:1px solid var(--line)}
+.sec.open .body{display:block}
+.mono{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+label.f{display:block;margin-top:10px}
+label.f span{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+input,textarea,select{width:100%;background:var(--bg);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px}
+textarea{resize:vertical;min-height:54px;line-height:1.45}
+input:focus,textarea:focus{outline:none;border-color:var(--gold)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.item{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;background:var(--surface2);position:relative}
+.item .tools{display:flex;gap:4px;justify-content:flex-end;margin-bottom:6px}
+.tools button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:6px;width:26px;height:24px;cursor:pointer;font-size:12px}
+.tools button:hover{color:var(--text);border-color:var(--line2)}
+.tools button.del:hover{color:#ff5d6c;border-color:#ff5d6c}
+.add{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+.hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5}
+.kv{display:grid;grid-template-columns:110px 1fr 26px;gap:6px;align-items:center;margin-top:6px}
+.kv input{padding:6px 8px;font-size:12px}
+.kv button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:6px;height:26px;cursor:pointer}
+
+/* ===== PREVIEW (A4) ===== */
+.page{width:210mm;min-height:297mm;margin:0 auto 20px;background:#fff;color:var(--ink);font-family:Poppins,sans-serif;font-size:9.6pt;line-height:1.55;padding:22mm 16mm 20mm;box-shadow:0 20px 60px rgba(0,0,0,.5);position:relative}
+.page .hd{position:absolute;top:10mm;left:16mm;right:16mm;display:flex;justify-content:space-between;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:#8d887c}
+.page .hd b{color:var(--gold2)}
+.page .ft{position:absolute;bottom:9mm;left:16mm;right:16mm;display:flex;justify-content:space-between;align-items:center;font-size:6.5px;color:#8d887c}
+.cover{background:var(--black);color:#fff;border-radius:10px;padding:26px 28px 24px;position:relative;overflow:hidden;min-height:215px}
+.cover .disc{position:absolute;right:-60px;top:-70px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f3e2a8,var(--gold) 45%,var(--gold2) 100%)}
+.cover .ring{position:absolute;right:60px;bottom:-95px;width:210px;height:210px;border-radius:50%;border:26px solid rgba(255,255,255,.07)}
+.cover .wm{font-size:8.5pt;font-weight:700;letter-spacing:.22em;color:var(--gold);margin-bottom:26px}
+.cover .kicker{font-size:7.2pt;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.cover h1{font-size:25pt;line-height:1.1;font-weight:700;margin:6px 0 22px;max-width:70%}
+.cover .meta{display:flex;gap:28px;flex-wrap:wrap}
+.cover .meta small{display:block;font-size:6.6pt;letter-spacing:.18em;text-transform:uppercase;color:#a29d90}
+.cover .meta b{font-size:10pt;font-weight:600}
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 16px}
+.party{border:1.5px solid var(--pline);border-radius:10px;padding:14px 16px;border-top:3px solid var(--pline)}
+.party:first-child{border-top-color:var(--gold)}.party:nth-child(2){border-top-color:var(--black)}
+.party .tag{font-size:6.8pt;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--gold2)}
+.party:nth-child(2) .tag{color:var(--ink)}
+.party h3{font-size:10pt;font-weight:700;margin:4px 0 4px;line-height:1.25}
+.party p{font-size:8.2pt;color:var(--ink2);line-height:1.5}
+p.body{text-align:justify;margin:0 0 8px}
+.cl{display:flex;align-items:baseline;gap:10px;border-bottom:1.5px solid var(--pline);padding:0 0 6px;margin:18px 0 10px;break-after:avoid}
+.cl .n{font-size:16pt;font-weight:700;color:var(--gold2);line-height:1}
+.cl h2{font-size:9.6pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.cl .ref{margin-left:auto;font-size:6.6pt;letter-spacing:.2em;text-transform:uppercase;color:#8d887c}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0 10px}
+.grid div{background:#f7f5ef;border-radius:6px;padding:8px 10px;font-size:8.8pt;display:flex;gap:10px}
+.grid div i{font-style:normal;font-weight:700;color:var(--gold2);font-size:7.5pt;padding-top:2px;min-width:14px}
+ol.items{list-style:none}
+ol.items li{display:flex;gap:10px;margin:0 0 6px;text-align:justify}
+ol.items li i{font-style:normal;font-weight:700;color:var(--gold2);font-size:7.5pt;padding-top:3px;min-width:14px}
+.hl{color:var(--gold2);font-weight:600;background:var(--gold-soft);padding:0 4px;border-radius:3px}
+.pay{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 10px;break-inside:avoid}
+.pay .card{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a1408;border-radius:10px;padding:16px 18px}
+.pay .card small{display:block;font-size:6.8pt;letter-spacing:.2em;text-transform:uppercase;font-weight:700;opacity:.8}
+.pay .card b{display:block;font-size:20pt;font-weight:700;line-height:1.15;margin:6px 0 4px}
+.pay .card p{font-size:8pt;font-weight:500}
+.pay .list{border:1.5px solid var(--pline);border-radius:10px;padding:10px 16px}
+.pay .list div{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--pline);font-size:8.4pt;color:var(--ink2)}
+.pay .list div:last-child{border-bottom:0}
+.pay .list b{color:var(--ink);font-size:9pt}
+.bank{background:var(--black);color:#fff;border-radius:10px;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;break-inside:avoid}
+.bank small{display:block;font-size:6.8pt;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.bank b{font-size:10pt}
+.bank .r{text-align:right;font-size:8pt;color:#cfcabb;line-height:1.6}
+.box{border-left:3px solid var(--gold);background:var(--gold-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:6px 0 10px;text-align:justify}
+.close{margin-top:22px;text-align:justify}
+.date{text-align:center;font-weight:600;margin:16px 0 40px}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:28px 36px;margin-top:10px}
+.sig{border-top:1.5px solid var(--ink);padding-top:8px}
+.sig b{display:block;font-size:9pt}
+.sig small{font-size:6.8pt;letter-spacing:.18em;text-transform:uppercase;color:#8d887c}
+.sig p{font-size:7.6pt;color:var(--ink2);margin-top:6px;line-height:1.7;white-space:pre-line}
+.pb{break-before:page}
+@media print{
+  @page{size:A4;margin:22mm 16mm 20mm 16mm}
+  body{display:block;height:auto;overflow:visible;background:#fff}
+  header,aside{display:none}
+  main{padding:0;background:#fff;overflow:visible}
+  .page{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}
+  .page .hd{position:fixed;top:-12mm;left:0;right:0}
+  .page .ft{position:fixed;bottom:-11mm;left:0;right:0}
+}
+</style></head><body>
+<header><b>BEN HUR ANDRADE</b><span class="t">Editor de contrato</span><span class="mono" id="status">carregado</span><span class="sp"></span>
+  <button class="btn" onclick="novo()">Novo em branco</button>
+  <input type="file" id="imp" accept="application/json" style="display:none" onchange="importar(this)"><button class="btn" onclick="document.getElementById('imp').click()">Importar JSON</button>
+  <button class="btn" onclick="exportar()">Exportar JSON</button>
+  <button class="btn gold" onclick="window.print()">Gerar PDF</button>
+</header>
+<aside id="form"></aside>
+<main><div class="page" id="page"></div></main>
+
+<script>
+/* ====== MODELO PADRÃO (Naporto) ====== */
+const PADRAO = {
+  meta:{marca:"BEN HUR ANDRADE",kicker:"Instrumento particular",titulo:"Contrato de Marketing Digital",
+    campos:[["Data","24/09/2026"],["Vigência","12 meses"],["Local","Belo Horizonte/MG"],["Contrato","CTR-000001"]],
+    cabecalho_dir:"Contrato de Marketing Digital · Naporto"},
+  partes:[
+    {tag:"(I) Contratada",nome:"WORLDX DIGITAL LTDA",linhas:["CNPJ 47.619.735/0001-61","Rua João Luiz Pereira, 51, Casa 04, Bairro São João Batista, Belo Horizonte/MG, CEP 31520-470. Neste ato representada por seus representantes legais, conforme contrato social."]},
+    {tag:"(II) Contratante",nome:"NAPORTO PROTEÇÃO PATRIMONIAL MUTUALISTA",linhas:["Associação privada · CNPJ 61.654.608/0001-24","Rua Tiradentes, 3070, Andar 2, Sala 4, Bairro Industrial, Contagem/MG, CEP 32.230-020. Neste ato representada por seus representantes legais, conforme estatuto social."]}
+  ],
+  intro:"**WORLDX** e **NAPORTO** resolvem, de comum acordo, celebrar o presente contrato de prestação de serviços de estratégia e serviços de marketing, que será regido pelos termos, cláusulas e condições a seguir.",
+  clausulas:[
+    {titulo:"Do objeto",ref:"Cláusula primeira",blocos:[
+      {tipo:"p",texto:"O objeto deste Contrato é a prestação, pela **CONTRATADA**, dos seguintes serviços:"},
+      {tipo:"servicos",itens:["Branding","Social Media","Designer","Web Designer","Tráfego Pago: Meta Ads, Google Ads, TikTok Ads e OpenAI Ads","Criação de Funil de Vendas","Gerenciamento das redes sociais (Instagram, Facebook e TikTok)","Copywriter","Filmmaker","Estratégia de Marketing"]},
+      {tipo:"p",texto:"Os serviços supramencionados serão relativos às redes digitais da **CONTRATANTE** no Instagram, Facebook e TikTok ( ==@portoreal.protecaoveicular== e ==@naportomutual== ), incluindo senhas, logins e todo conteúdo de caráter pessoal e sigiloso, preservando a imagem da instituição e estando em conformidade com as Leis 8.078/1990 (Código de Defesa do Consumidor), 4.680/1965 (regulamentação da atividade publicitária), com o Código Brasileiro de Autorregulamentação Publicitária e com a Lei 13.709/2018 (Lei Geral de Proteção de Dados)."}]},
+    {titulo:"Das obrigações da contratada",ref:"Cláusula segunda",blocos:[{tipo:"itens",itens:[
+      "Preservar a boa imagem da **CONTRATANTE**, empenhando-se para que a instituição mantenha sempre sua integridade.",
+      "Fornecer conteúdos digitais e estudos de conceito, ideias e inovações relacionadas aos serviços da **CONTRATANTE**.",
+      "Comunicar-se de maneira assertiva com a audiência e com potenciais associados.",
+      "Realizar análises constantes de possíveis desdobramentos naturais que sejam complementares às funções exercidas, independentemente de estarem descritas neste Instrumento."]}]},
+    {titulo:"Das obrigações da contratante",ref:"Cláusula terceira",blocos:[{tipo:"itens",itens:[
+      "Fornecer as informações e os elementos necessários para início e desenvolvimento dos conteúdos no prazo máximo de 72 (setenta e duas) horas, evitando atrasos e interrupções no cronograma seguido pela **CONTRATADA**.",
+      "Quando necessário, aprovar os conteúdos midiáticos em até 24 (vinte e quatro) horas.",
+      "Efetuar os pagamentos nas datas e valores previstos na Cláusula Sexta."]}]},
+    {titulo:"Dos prazos",ref:"Cláusula quarta",blocos:[{tipo:"p",texto:"4.1 O início da prestação de serviços se dará a partir da assinatura deste contrato, em 24/09/2026, com prazo de vigência de 12 (doze) meses, encerrando-se em 23/09/2027."}]},
+    {titulo:"Direitos autorais",ref:"Cláusula quinta",blocos:[
+      {tipo:"p",texto:"5.1 É de responsabilidade da **CONTRATADA** a elaboração de artes, designs publicitários e qualquer outro conteúdo vinculado às mídias sociais da **CONTRATANTE** durante o período de vigência deste instrumento, cabendo à **CONTRATANTE** os direitos sobre todos os conteúdos produzidos."},
+      {tipo:"p",texto:"**PARÁGRAFO ÚNICO** · As demais questões não explícitas neste documento serão regidas pela Lei 9.610/1998, que regula os Direitos Autorais."}]},
+    {titulo:"Pagamento e valores",ref:"Cláusula sexta",blocos:[
+      {tipo:"p",texto:"Pela integralidade dos serviços prestados, a **CONTRATANTE** pagará à **CONTRATADA** 12 (doze) parcelas mensais de **R$ 5.300,00 (cinco mil e trezentos reais)**. A primeira parcela, referente a setembro de 2026, será paga da seguinte forma: R$ 3.000,00 (três mil reais) no ato da assinatura deste contrato e R$ 2.300,00 (dois mil e trezentos reais) em 09/10/2026. As demais parcelas serão pagas em valor cheio, todo dia 24 (vinte e quatro) de cada mês, a partir de 24/10/2026."},
+      {tipo:"pagamento",label:"Investimento mensal",destaque:"12x de R$ 5.300,00",sub:"Vencimento todo dia 24 · reavaliação a partir do 6º mês",
+        resumo:[["Entrada · no ato (24/09/2026)","R$ 3.000,00"],["Saldo 1ª parcela · 09/10/2026","R$ 2.300,00"],["Demais parcelas · desde 24/10/2026","R$ 5.300,00"]]},
+      {tipo:"banco",label:"Dados para pagamento",nome:"WORLDX DIGITAL LTDA",linhas:["Banco Inter · 077 · Agência **0001** · CC **23940584-6**","Chave PIX (CNPJ) **47.619.735/0001-61**"]},
+      {tipo:"p",texto:"**PARÁGRAFO ÚNICO** · Os valores aqui previstos serão reavaliados a partir do 6º (sexto) mês de vigência deste contrato, conforme Cláusula Sétima."},
+      {tipo:"p",texto:"6.1 O valor deverá ser transferido para a conta acima especificada na data do respectivo vencimento de cada parcela. O não pagamento na data definida ensejará multa de 2% (dois por cento) e juros de 1% (um por cento) ao mês sobre o valor de cada parcela paga em atraso."}]},
+    {titulo:"Da revisão dos valores",ref:"Cláusula sétima",blocos:[
+      {tipo:"destaque",texto:"7.1 A partir do 6º (sexto) mês de vigência deste contrato, ou seja, fevereiro de 2027, as partes se reunirão para reavaliar e negociar o reajuste dos valores previstos na Cláusula Sexta, considerando o escopo dos serviços, os resultados obtidos e as condições de mercado."},
+      {tipo:"p",texto:"7.2 Eventual reajuste acordado será formalizado por meio de Termo Aditivo assinado por ambas as partes, passando a valer a partir da data nele indicada. Até a assinatura do Termo Aditivo, permanecem válidos os valores originalmente pactuados."}]},
+    {titulo:"Da rescisão contratual",ref:"Cláusula oitava",blocos:[
+      {tipo:"p",texto:"8.1 Este Instrumento poderá ser rescindido a qualquer tempo por qualquer uma das partes, estando a parte que der causa à rescisão sem justo motivo sujeita à multa de 30% (trinta por cento) sobre o valor do contrato."},
+      {tipo:"p",texto:"8.2 As partes pactuam que, caso ocorra prévio aviso de 30 (trinta) dias, não haverá incidência da multa pela rescisão antecipada. Este entendimento é mutuamente válido para contratante e contratada, com o propósito de promover um término amigável e transparente da relação contratual."}]},
+    {titulo:"Do foro",ref:"Cláusula nona",blocos:[{tipo:"p",texto:"9.1 As partes elegem o Foro Central da Comarca de Belo Horizonte/MG como competente para dirimir as questões decorrentes do presente contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja."}]}
+  ],
+  fechamento:{texto:"E, por estarem assim justas e contratadas, as partes assinam o presente instrumento em 2 (duas) vias de igual teor e forma, na presença das testemunhas abaixo.",data:"Belo Horizonte, 24 de setembro de 2026."},
+  assinaturas:[{nome:"WORLDX DIGITAL LTDA",sub:"Contratada",extra:""},{nome:"NAPORTO PROTEÇÃO PATRIMONIAL MUTUALISTA",sub:"Contratante",extra:""},{nome:"Testemunha 1",sub:"",extra:"Nome:\nCPF:"},{nome:"Testemunha 2",sub:"",extra:"Nome:\nCPF:"}],
+  rodape:{esq:"CNPJ 47.619.735/0001-61 · contato: (11) 95175-1968 · contato@worldx.tech",meio:"Rubricas: ____________"}
+};
+
+let doc = load();
+function load(){try{const s=localStorage.getItem('contrato_doc');if(s)return JSON.parse(s)}catch(e){}return structuredClone(PADRAO)}
+function save(){try{localStorage.setItem('contrato_doc',JSON.stringify(doc))}catch(e){} document.getElementById('status').textContent='salvo '+new Date().toLocaleTimeString('pt-BR')}
+function novo(){if(!confirm('Começar um contrato em branco? O atual fica no JSON exportado.'))return;
+  doc={meta:{marca:"BEN HUR ANDRADE",kicker:"Instrumento particular",titulo:"Contrato de Prestação de Serviços",campos:[["Data",""],["Vigência",""],["Local",""],["Contrato",""]],cabecalho_dir:""},
+  partes:[{tag:"(I) Contratada",nome:"",linhas:[""]},{tag:"(II) Contratante",nome:"",linhas:[""]}],intro:"",clausulas:[{titulo:"Do objeto",ref:"Cláusula primeira",blocos:[{tipo:"p",texto:""}]}],
+  fechamento:{texto:"E, por estarem assim justas e contratadas, as partes assinam o presente instrumento em 2 (duas) vias de igual teor e forma, na presença das testemunhas abaixo.",data:""},
+  assinaturas:[{nome:"",sub:"Contratada",extra:""},{nome:"",sub:"Contratante",extra:""}],rodape:{esq:"",meio:"Rubricas: ____________"}};
+  save();buildForm();render()}
+function exportar(){const a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(doc,null,2));
+  a.download=(doc.meta.campos.find(c=>c[0]==='Contrato')?.[1]||'contrato')+'.json';a.click()}
+function importar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{doc=JSON.parse(r.result);save();buildForm();render()}catch(e){alert('JSON inválido')}};r.readAsText(f)}
+
+/* ====== FORMULÁRIO DINÂMICO ====== */
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const F=document.getElementById('form');
+const openSecs=new Set(['meta','partes','clausulas']);
+function sec(id,title,inner,badge=''){return `<div class="sec ${openSecs.has(id)?'open':''}" data-sec="${id}"><h3>${title}<span class="mono">${badge}</span></h3><div class="body">${inner}</div></div>`}
+function fld(label,path,val,ta=false){return `<label class="f"><span>${label}</span>${ta?`<textarea data-path="${path}">${esc(val)}</textarea>`:`<input data-path="${path}" value="${esc(val)}">`}</label>`}
+function tools(path,i,len){return `<div class="tools"><button title="subir" data-act="up" data-path="${path}" data-i="${i}" ${i===0?'disabled':''}>↑</button><button title="descer" data-act="down" data-path="${path}" data-i="${i}" ${i===len-1?'disabled':''}>↓</button><button class="del" title="remover" data-act="del" data-path="${path}" data-i="${i}">✕</button></div>`}
+function listStrings(path,arr,label){return arr.map((v,i)=>`<div class="item">${tools(path,i,arr.length)}<textarea data-path="${path}.${i}">${esc(v)}</textarea></div>`).join('')+`<div class="add"><button class="btn sm" data-act="add" data-path="${path}" data-kind="str">+ ${label}</button></div>`}
+function listPairs(path,arr,label){return arr.map((p,i)=>`<div class="kv"><input data-path="${path}.${i}.0" value="${esc(p[0])}" placeholder="rótulo"><input data-path="${path}.${i}.1" value="${esc(p[1])}" placeholder="valor"><button data-act="del" data-path="${path}" data-i="${i}">✕</button></div>`).join('')+`<div class="add"><button class="btn sm" data-act="add" data-path="${path}" data-kind="pair">+ ${label}</button></div>`}
+
+function buildForm(){
+  const m=doc.meta;
+  let h=sec('meta','Capa e cabeçalho',
+    fld('Marca (topo da capa)','meta.marca',m.marca)+fld('Linha pequena','meta.kicker',m.kicker)+fld('Título do contrato','meta.titulo',m.titulo)+
+    `<div class="mono" style="margin-top:12px">Campos da capa</div>`+listPairs('meta.campos',m.campos,'campo')+
+    fld('Cabeçalho das páginas (direita)','meta.cabecalho_dir',m.cabecalho_dir));
+  h+=sec('partes','Partes',
+    doc.partes.map((p,i)=>`<div class="item">${tools('partes',i,doc.partes.length)}${fld('Etiqueta','partes.'+i+'.tag',p.tag)}${fld('Nome / razão social','partes.'+i+'.nome',p.nome)}<div class="mono" style="margin-top:10px">Linhas (CNPJ, endereço, representação...)</div>${listStrings('partes.'+i+'.linhas',p.linhas,'linha')}</div>`).join('')+
+    `<div class="add"><button class="btn sm" data-act="add" data-path="partes" data-kind="parte">+ parte</button></div>`+fld('Parágrafo de abertura','intro',doc.intro,true),doc.partes.length+' partes');
+  h+=sec('clausulas','Cláusulas',
+    doc.clausulas.map((c,i)=>`<div class="item">${tools('clausulas',i,doc.clausulas.length)}<div class="row2">${fld('Título','clausulas.'+i+'.titulo',c.titulo)}${fld('Referência','clausulas.'+i+'.ref',c.ref)}</div>
+      ${c.blocos.map((b,j)=>blocoForm('clausulas.'+i+'.blocos',b,j,c.blocos.length)).join('')}
+      <div class="add"><span class="mono" style="align-self:center">+ bloco:</span>
+        <button class="btn sm" data-act="add" data-path="clausulas.${i}.blocos" data-kind="p">parágrafo</button>
+        <button class="btn sm" data-act="add" data-path="clausulas.${i}.blocos" data-kind="itens">lista numerada</button>
+        <button class="btn sm" data-act="add" data-path="clausulas.${i}.blocos" data-kind="destaque">destaque</button>
+        <button class="btn sm" data-act="add" data-path="clausulas.${i}.blocos" data-kind="servicos">grade de serviços</button>
+        <button class="btn sm" data-act="add" data-path="clausulas.${i}.blocos" data-kind="pagamento">card de pagamento</button>
+        <button class="btn sm" data-act="add" data-path="clausulas.${i}.blocos" data-kind="banco">dados bancários</button></div></div>`).join('')+
+    `<div class="add"><button class="btn sm" data-act="add" data-path="clausulas" data-kind="clausula">+ cláusula</button></div>
+     <p class="hint">Formatação no texto: **negrito** e ==destaque dourado==. A numeração das cláusulas (01, 02...) é automática pela ordem.</p>`,doc.clausulas.length+' cláusulas');
+  h+=sec('fech','Fechamento e assinaturas',
+    fld('Texto de fechamento','fechamento.texto',doc.fechamento.texto,true)+fld('Local e data por extenso','fechamento.data',doc.fechamento.data)+
+    `<div class="mono" style="margin-top:12px">Assinaturas</div>`+doc.assinaturas.map((a,i)=>`<div class="item">${tools('assinaturas',i,doc.assinaturas.length)}${fld('Nome','assinaturas.'+i+'.nome',a.nome)}<div class="row2">${fld('Papel (Contratada, Testemunha...)','assinaturas.'+i+'.sub',a.sub)}${fld('Linhas extras (Nome:, CPF:)','assinaturas.'+i+'.extra',a.extra,true)}</div></div>`).join('')+
+    `<div class="add"><button class="btn sm" data-act="add" data-path="assinaturas" data-kind="assin">+ assinatura</button></div>`,doc.assinaturas.length+' assinaturas');
+  h+=sec('rod','Rodapé',fld('Esquerda (CNPJ, contato)','rodape.esq',doc.rodape.esq)+fld('Centro','rodape.meio',doc.rodape.meio));
+  F.innerHTML=h;
+}
+function blocoForm(path,b,j,len){const p=`${path}.${j}`;const nome={p:'Parágrafo',itens:'Lista numerada',destaque:'Destaque',servicos:'Grade de serviços',pagamento:'Card de pagamento',banco:'Dados bancários'}[b.tipo];
+  let inner='';
+  if(b.tipo==='p'||b.tipo==='destaque')inner=`<textarea data-path="${p}.texto">${esc(b.texto)}</textarea>`;
+  else if(b.tipo==='itens'||b.tipo==='servicos')inner=listStrings(p+'.itens',b.itens,'item');
+  else if(b.tipo==='pagamento')inner=fld('Rótulo',p+'.label',b.label)+fld('Destaque (ex.: 12x de R$ 5.300,00)',p+'.destaque',b.destaque)+fld('Linha abaixo',p+'.sub',b.sub)+`<div class="mono" style="margin-top:10px">Linhas do resumo</div>`+listPairs(p+'.resumo',b.resumo,'linha');
+  else if(b.tipo==='banco')inner=fld('Rótulo',p+'.label',b.label)+fld('Favorecido',p+'.nome',b.nome)+`<div class="mono" style="margin-top:10px">Linhas</div>`+listStrings(p+'.linhas',b.linhas,'linha');
+  return `<div class="item">${tools(path,j,len)}<div class="mono" style="margin-bottom:6px">${nome}</div>${inner}</div>`}
+
+/* caminho -> objeto */
+function get(path){return path.split('.').reduce((o,k)=>o[k],doc)}
+function set(path,val){const ks=path.split('.');const last=ks.pop();get(ks.join('.'))[last]=val}
+F.addEventListener('input',e=>{const p=e.target.dataset.path;if(!p)return;set(p,e.target.value);save();render()});
+F.addEventListener('click',e=>{
+  const h=e.target.closest('.sec>h3');if(h){const s=h.parentElement;s.classList.toggle('open');const id=s.dataset.sec;s.classList.contains('open')?openSecs.add(id):openSecs.delete(id);return}
+  const b=e.target.closest('button[data-act]');if(!b)return;
+  const arr=get(b.dataset.path),i=+b.dataset.i,act=b.dataset.act;
+  if(act==='del'){if(!confirm('Remover este item?'))return;arr.splice(i,1)}
+  if(act==='up'){[arr[i-1],arr[i]]=[arr[i],arr[i-1]]}
+  if(act==='down'){[arr[i+1],arr[i]]=[arr[i],arr[i+1]]}
+  if(act==='add'){const k=b.dataset.kind;const novo={str:()=>'',pair:()=>['',''],parte:()=>({tag:'(III) Interveniente',nome:'',linhas:['']}),clausula:()=>({titulo:'Nova cláusula',ref:'',blocos:[{tipo:'p',texto:''}]}),
+    p:()=>({tipo:'p',texto:''}),itens:()=>({tipo:'itens',itens:['']}),destaque:()=>({tipo:'destaque',texto:''}),servicos:()=>({tipo:'servicos',itens:['']}),
+    pagamento:()=>({tipo:'pagamento',label:'Investimento mensal',destaque:'',sub:'',resumo:[['','']]}),banco:()=>({tipo:'banco',label:'Dados para pagamento',nome:'',linhas:['']}),assin:()=>({nome:'',sub:'',extra:''})}[k]();arr.push(novo)}
+  save();buildForm();render()});
+
+/* ====== PREVIEW ====== */
+const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/==(.+?)==/g,'<span class="hl">$1</span>');
+const ORD=['primeira','segunda','terceira','quarta','quinta','sexta','sétima','oitava','nona','décima','décima primeira','décima segunda'];
+function render(){
+  const m=doc.meta;let h=`<div class="hd"><b>${esc(m.marca)}</b><span>${esc(m.cabecalho_dir)}</span></div>`;
+  h+=`<section class="cover"><div class="disc"></div><div class="ring"></div><div class="wm">${esc(m.marca)}</div><div class="kicker">${esc(m.kicker)}</div><h1>${esc(m.titulo)}</h1><div class="meta">${m.campos.filter(c=>c[0]||c[1]).map(c=>`<div><small>${esc(c[0])}</small><b>${esc(c[1])}</b></div>`).join('')}</div></section>`;
+  h+=`<div class="parties">${doc.partes.map(p=>`<div class="party"><div class="tag">${esc(p.tag)}</div><h3>${esc(p.nome)}</h3><p>${p.linhas.map(md).join('<br>')}</p></div>`).join('')}</div>`;
+  if(doc.intro)h+=`<p class="body">${md(doc.intro)}</p>`;
+  doc.clausulas.forEach((c,i)=>{h+=`<div class="cl"><span class="n">${String(i+1).padStart(2,'0')}</span><h2>${esc(c.titulo)}</h2><span class="ref">${esc(c.ref||('Cláusula '+(ORD[i]||i+1)))}</span></div>`;
+    c.blocos.forEach(b=>{
+      if(b.tipo==='p')h+=`<p class="body">${md(b.texto)}</p>`;
+      else if(b.tipo==='destaque')h+=`<div class="box">${md(b.texto)}</div>`;
+      else if(b.tipo==='itens')h+=`<ol class="items">${b.itens.map((t,j)=>`<li><i>${String(j+1).padStart(2,'0')}</i><span>${md(t)}</span></li>`).join('')}</ol>`;
+      else if(b.tipo==='servicos')h+=`<div class="grid">${b.itens.map((t,j)=>`<div><i>${String(j+1).padStart(2,'0')}</i><span>${md(t)}</span></div>`).join('')}</div>`;
+      else if(b.tipo==='pagamento')h+=`<div class="pay"><div class="card"><small>${esc(b.label)}</small><b>${esc(b.destaque)}</b><p>${esc(b.sub)}</p></div><div class="list">${b.resumo.map(r=>`<div><span>${md(r[0])}</span><b>${md(r[1])}</b></div>`).join('')}</div></div>`;
+      else if(b.tipo==='banco')h+=`<div class="bank"><div><small>${esc(b.label)}</small><b>${esc(b.nome)}</b></div><div class="r">${b.linhas.map(md).join('<br>')}</div></div>`;
+    })});
+  h+=`<div class="pb"></div><p class="body close">${md(doc.fechamento.texto)}</p><p class="date">${esc(doc.fechamento.data)}</p><div class="sigs">${doc.assinaturas.map(a=>`<div class="sig"><b>${esc(a.nome)}</b>${a.sub?`<small>${esc(a.sub)}</small>`:''}${a.extra?`<p>${esc(a.extra)}</p>`:''}</div>`).join('')}</div>`;
+  h+=`<div class="ft"><span>${esc(doc.rodape.esq)}</span><span>${esc(doc.rodape.meio)}</span><span></span></div>`;
+  document.getElementById('page').innerHTML=h;
+}
+buildForm();render();
+</script></body></html>

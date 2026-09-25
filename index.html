@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel do Cliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070707; --bg2:#0c0c0d; --surface:#121214; --surface2:#19191c;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --text:#f2efe8; --muted:#9a968c; --hud:#6f6a5e;
+  --accent:#d9b45b; --accent2:#ebd08a; --gold-deep:#8a6d1f; --ok:#3ddc97; --warn:#ffb547; --bad:#ff5d6c;
+  /* cores secundárias por setor */
+  --c-social:#e1306c; --c-ads:#2f7bff; --c-design:#a78bfa; --c-video:#ff8a3d; --c-web:#22c7d6; --c-comercial:#3ddc97;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:auto}
+body{background:var(--bg);color:var(--text);font-family:"Instrument Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.mono{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--hud)}
+
+/* NAV */
+.nav{position:fixed;inset:0 0 auto 0;z-index:50;display:flex;align-items:center;gap:28px;padding:0 48px;height:68px;
+  background:linear-gradient(180deg,rgba(7,11,20,.92),rgba(7,11,20,0));transition:background .3s}
+.nav.solid{background:rgba(7,11,20,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{width:28px;height:28px;border-radius:8px;background:conic-gradient(from 210deg,#d9b45b,#f3e2a8,#8a6d1f,#d9b45b);box-shadow:0 0 24px rgba(217,180,91,.4)}
+.brand b{font-weight:700;letter-spacing:.14em;font-size:13px}
+.brand .co{color:var(--muted);font-size:13px;padding-left:12px;border-left:1px solid var(--line2)}
+.tabs{display:flex;gap:22px;margin-left:12px}
+.tabs a{font-size:14px;color:var(--muted);font-weight:500;padding:6px 0;position:relative}
+.tabs a.on{color:var(--text)}
+.tabs a.on::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;border-radius:2px;background:var(--accent)}
+.nav .right{margin-left:auto;display:flex;align-items:center;gap:18px}
+.bell{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line2);position:relative}
+.bell i{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--bg)}
+.avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#8a6d1f,#d9b45b);color:#141006;display:grid;place-items:center;font-weight:700;font-size:13px}
+
+/* BILLBOARD */
+.billboard{position:relative;min-height:82vh;display:flex;align-items:flex-end;padding:0 48px 56px;overflow:hidden;isolation:isolate}
+.billboard .art{position:absolute;inset:0;z-index:-1}
+.billboard .art svg{position:absolute;right:-4%;bottom:-6%;width:78%;height:86%}
+.billboard .glow{position:absolute;width:60vw;height:60vw;right:-10vw;top:-20vw;border-radius:50%;
+  background:radial-gradient(circle,rgba(217,180,91,.18),rgba(217,180,91,0) 60%);filter:blur(10px)}
+.billboard .grid{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:72px 72px;opacity:.35;mask-image:radial-gradient(ellipse at 70% 60%,#000 20%,transparent 70%)}
+.billboard::after{content:"";position:absolute;left:0;right:0;bottom:0;height:180px;background:linear-gradient(180deg,rgba(7,11,20,0),var(--bg));z-index:-1}
+.bb-copy{max-width:680px;position:relative}
+.bb-copy>.mono{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.bb-copy>.mono::before{content:"";width:22px;height:1px;background:var(--accent)}
+.bb-copy h1{font-size:56px;line-height:1.02;letter-spacing:-.03em;font-weight:600}
+.bb-copy h1 span{color:var(--accent2)}
+.bb-copy p{margin-top:16px;font-size:17px;line-height:1.5;color:var(--muted);max-width:520px}
+.bb-actions{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 20px;border-radius:10px;font-weight:600;font-size:15px;border:1px solid transparent;transition:transform .2s,background .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--accent);color:#141006}
+.btn.ghost{background:rgba(255,255,255,.08);border-color:var(--line2);backdrop-filter:blur(8px)}
+.btn .pill{background:#141006;color:var(--accent2);font-size:12px;padding:2px 8px;border-radius:99px}
+.bb-stats{display:flex;gap:28px;margin-top:34px;flex-wrap:wrap}
+.bb-stats div b{display:block;font-size:22px;font-weight:600;letter-spacing:-.02em}
+.bb-stats div b small{font-size:13px;color:var(--muted);font-weight:500}
+.bb-stats div .mono{margin:0}
+
+/* ROWS */
+.row{padding:34px 0 6px}
+.row-head{display:flex;align-items:baseline;gap:16px;padding:0 48px;margin-bottom:14px}
+.row-head h2{font-size:20px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.row-head h2 i{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px currentColor;color:var(--accent)}
+.row-head .mono{margin-left:auto;color:var(--muted);text-transform:none;letter-spacing:0;font-family:"Instrument Sans";font-size:13px}
+.row-head .mono:hover{color:var(--text)}
+.track-wrap{position:relative}
+.track{display:flex;gap:14px;overflow-x:auto;padding:8px 48px 22px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.track::-webkit-scrollbar{display:none}
+.track>*{scroll-snap-align:start;flex:0 0 auto}
+.arrow{position:absolute;top:0;bottom:22px;width:48px;display:grid;place-items:center;cursor:pointer;opacity:0;transition:opacity .2s;z-index:2}
+.arrow.l{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.arrow.r{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+.track-wrap:hover .arrow{opacity:1}
+.arrow span{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid var(--line2);display:grid;place-items:center;font-size:14px}
+
+/* KPI */
+.kpi{width:236px;height:150px;border-radius:var(--radius);background:linear-gradient(160deg,var(--surface2),var(--surface));border:1px solid var(--line);padding:18px 18px 14px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;transition:transform .25s,border-color .25s}
+.kpi:hover{transform:translateY(-4px);border-color:var(--line2)}
+.kpi .v{font-size:30px;font-weight:600;letter-spacing:-.03em;margin-top:6px}
+.kpi .v small{font-size:15px;color:var(--muted);font-weight:500;margin-left:4px}
+.kpi .d{font-size:13px;display:flex;align-items:center;gap:6px}
+.kpi .d.up{color:var(--ok)} .kpi .d.down{color:var(--bad)}
+.kpi svg{position:absolute;right:0;bottom:0;width:120px;height:48px;opacity:.9}
+
+/* TODO cards */
+.todo{width:320px;height:120px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface);padding:18px;display:flex;gap:16px;align-items:center;transition:transform .25s,background .25s}
+.todo:hover{transform:translateY(-4px);background:var(--surface2)}
+.todo .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto;font-size:18px}
+.todo .ic.a{background:rgba(217,180,91,.14);color:var(--accent2)}
+.todo .ic.w{background:rgba(255,181,71,.14);color:var(--warn)}
+.todo .ic.g{background:rgba(61,220,151,.14);color:var(--ok)}
+.todo b{display:block;font-size:15px;font-weight:600}
+.todo p{font-size:13px;color:var(--muted);margin-top:4px}
+.todo .go{margin-left:auto;color:var(--muted);font-size:20px}
+
+/* POSTERS */
+.poster{width:200px;aspect-ratio:4/5;border-radius:12px;overflow:hidden;position:relative;border:1px solid var(--line);transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s;cursor:pointer}
+.poster:hover{transform:scale(1.07);box-shadow:0 24px 60px rgba(0,0,0,.6);z-index:3}
+.poster .bg{position:absolute;inset:0}
+.poster .tag{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.poster .play{position:absolute;top:50%;left:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(255,255,255,.9);color:#0a1224;display:grid;place-items:center;font-size:16px;opacity:0;transform:scale(.8);transition:.25s}
+.poster:hover .play{opacity:1;transform:scale(1)}
+.poster .meta{position:absolute;inset:auto 0 0 0;padding:40px 12px 12px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.8))}
+.poster .meta b{display:block;font-size:14px}
+.poster .meta span{font-size:12px;color:#c8d2e6}
+.poster .art-text{position:absolute;left:14px;top:44px;right:14px;font-weight:700;font-size:22px;line-height:1.05;letter-spacing:-.02em;text-shadow:0 2px 12px rgba(0,0,0,.4)}
+.poster .status{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%}
+.g1{background:linear-gradient(160deg,#3a2c0c,#a8852a 60%,#f3e2a8)}
+.g2{background:linear-gradient(160deg,#0b2a2a,#0f7a6a 55%,#3ddc97)}
+.g3{background:linear-gradient(160deg,#2a1226,#7a2c5b 55%,#ff8fb6)}
+.g4{background:linear-gradient(160deg,#2b1d0a,#9a6212 55%,#ffb547)}
+.g5{background:linear-gradient(160deg,#0f2a3a,#1b6f7a 60%,#22c7d6)}
+.g6{background:linear-gradient(160deg,#28101a,#8a2434 55%,#ff5d6c)}
+
+/* TOP 10 */
+.top{display:flex;align-items:flex-end;width:250px;height:190px;position:relative}
+.top .n{font-size:150px;font-weight:700;line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:2px #4a4232;width:110px;flex:0 0 auto;transition:.3s}
+.top:hover .n{color:#1f1a10;-webkit-text-stroke:2px var(--gold-deep)}
+.top .card{width:140px;height:160px;border-radius:12px;overflow:hidden;position:relative;margin-left:-16px;border:1px solid var(--line);transition:transform .3s}
+.top:hover .card{transform:translateY(-6px)}
+.top .card .m{position:absolute;inset:auto 0 0 0;padding:26px 10px 10px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.85));font-size:12px}
+.top .card .m b{display:block;font-size:14px}
+
+/* JOURNEY */
+.ep{width:300px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface);padding:18px;transition:transform .25s,border-color .25s}
+.ep:hover{transform:translateY(-4px);border-color:var(--line2)}
+.ep .num{font-size:34px;font-weight:600;letter-spacing:-.03em;color:#3a3427}
+.ep.now .num{color:var(--accent)}
+.ep b{display:block;font-size:16px;margin-top:6px}
+.ep p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45;min-height:38px}
+.bar{height:4px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:14px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--accent2));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.ep.done .bar i{background:var(--ok)}
+.ep .foot{display:flex;justify-content:space-between;margin-top:8px}
+
+/* CAMPAIGNS */
+.camp{width:330px;border-radius:var(--radius);border:1px solid var(--line);background:linear-gradient(160deg,var(--surface2),var(--surface));padding:18px;transition:transform .25s}
+.camp:hover{transform:translateY(-4px)}
+.camp .hd{display:flex;align-items:center;gap:10px}
+.camp .ch{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:700}
+.ch.meta{background:#1877f2}.ch.google{background:#fff;color:#1a1a1a}.ch.tiktok{background:#111;border:1px solid var(--line2)}
+.camp b{font-size:15px}
+.camp .live{margin-left:auto;font-size:11px;color:var(--ok);display:flex;align-items:center;gap:6px}
+.camp .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.camp .g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.camp .g div b{display:block;font-size:18px;font-weight:600;letter-spacing:-.02em;margin-top:2px}
+
+/* OFFERS */
+.offer{width:270px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface);padding:20px;display:flex;flex-direction:column;transition:transform .25s,border-color .25s}
+.offer:hover{transform:translateY(-4px);border-color:rgba(217,180,91,.55)}
+.offer b{font-size:17px;margin-top:8px}.offer p{font-size:13px;color:var(--muted);line-height:1.45;margin-top:6px;min-height:56px}
+.offer .price{font-size:24px;font-weight:600;letter-spacing:-.02em;margin-top:14px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.offer .price small{font-size:12px;color:var(--muted);font-weight:500}
+.offer .price span{font-size:20px}
+.offer .full{font-size:12px;color:var(--muted);margin-top:4px;min-height:0}
+.offer .wa{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;height:42px;border-radius:10px;background:#25d366;color:#04140a;font-weight:600;font-size:14px;transition:filter .2s}
+.offer .wa::before{content:"";width:16px;height:16px;border-radius:50%;background:#04140a;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.7-1.7c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 2.9.6a2.5 2.5 0 0 0 1.7-1.2 2 2 0 0 0 .1-1.2c0-.1-.2-.2-.4-.3z'/%3E%3C/svg%3E") center/contain no-repeat}
+.offer .wa:hover{filter:brightness(1.08)}
+/* TEAM MODAL */
+.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;background:rgba(3,6,12,.7);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal.on{opacity:1;pointer-events:auto}
+.md-box{width:min(640px,100%);min-width:0;max-height:92vh;overflow-y:auto;background:var(--bg2);border:1px solid var(--line2);border-radius:18px;transform:translateY(12px) scale(.98);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.modal.on .md-box{transform:none}
+.md-head{display:flex;align-items:flex-start;padding:24px 24px 18px;border-bottom:1px solid var(--line)}
+.md-head b{font-size:18px}.md-head p{font-size:13px;color:var(--muted);margin-top:4px}
+.md-head .close{margin-left:auto;font-size:26px;color:var(--muted);cursor:pointer;line-height:1}
+.members{padding:8px 24px}
+.mem{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.mem>div{min-width:0}.mem b{display:block;font-size:14px}.mem p{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mem .badge{margin-left:auto;background:rgba(255,255,255,.07);color:var(--muted)}.mem .badge.ok{color:var(--ok);background:rgba(61,220,151,.14)}
+.mem .edit{font-size:12px;color:var(--accent2);cursor:pointer}
+.invite{padding:18px 24px 24px;background:var(--surface);border-top:1px solid var(--line);border-radius:0 0 18px 18px}
+.invite>.mono{display:block;margin-bottom:12px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.invite input[type=text],.invite input:not([type]){min-width:0;height:42px;border-radius:10px;border:1px solid var(--line2);background:var(--bg);color:var(--text);padding:0 12px;font:inherit;font-size:14px;width:100%}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.roles label{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:10px;border:1px solid var(--line2);cursor:pointer;position:relative}
+.roles label.on{border-color:var(--accent);background:rgba(217,180,91,.08)}
+.roles label input{position:absolute;opacity:0}.roles b{font-size:14px}.roles span{font-size:12px;color:var(--muted)}
+.perms{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.perms label{min-width:0;display:flex;align-items:center;gap:8px;font-size:13px;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer}
+.perms input{accent-color:var(--accent);width:15px;height:15px}
+@media (max-width:820px){.perms{grid-template-columns:1fr 1fr}.frow,.roles{grid-template-columns:1fr}}
+/* DRAWER */
+.scrim{position:fixed;inset:0;background:rgba(3,6,12,.6);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s;z-index:60}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:92vw;background:var(--bg2);border-left:1px solid var(--line);z-index:70;transform:translateX(100%);transition:transform .38s cubic-bezier(.2,.8,.2,1);overflow-y:auto}
+.drawer.on{transform:none}
+.dr-head{display:flex;gap:14px;align-items:center;padding:26px 22px 18px;border-bottom:1px solid var(--line)}
+.dr-head b{font-size:17px;display:block}.dr-head p{font-size:12px;color:var(--muted);margin-top:3px}
+.dr-head .close{margin-left:auto;font-size:26px;color:var(--muted);cursor:pointer;line-height:1}
+.dr-block{padding:20px 22px;border-bottom:1px solid var(--line)}
+.dr-block>.mono{display:block;margin-bottom:12px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:14px;color:var(--muted);border-top:1px solid var(--line)}
+.kv:first-of-type{border-top:0}.kv b{color:var(--text);font-weight:500;text-align:right}
+.fee{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);margin-bottom:6px}
+.fee b{font-size:24px;letter-spacing:-.02em}.fee b small{font-size:13px;color:var(--muted);font-weight:500}
+.fee p{font-size:12px;color:var(--muted);margin-top:2px}
+.badge{font-size:12px;font-weight:600;padding:6px 10px;border-radius:99px}
+.badge.ok{background:rgba(61,220,151,.14);color:var(--ok)}.badge.warn{background:rgba(255,181,71,.14);color:var(--warn)}.badge.bad{background:rgba(255,93,108,.14);color:var(--bad)}
+.btn.small{height:38px;font-size:13px;padding:0 14px;margin-top:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips span{font-size:12px;padding:6px 10px;border-radius:99px;border:1px solid var(--line2);background:var(--surface)}
+.hint{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5}.hint a{color:var(--accent2);cursor:pointer}
+footer{padding:40px 48px 60px;color:var(--hud);display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:30px}
+
+@media (max-width:820px){
+  .nav{padding:0 16px;gap:14px}.tabs{display:none}.brand .co{display:none}
+  .billboard{padding:96px 16px 36px;min-height:78vh;align-items:flex-end}
+  .billboard .art svg{width:140%;right:-30%;bottom:-2%;opacity:.7}
+  .bb-copy h1{font-size:34px}.bb-copy p{font-size:15px}
+  .bb-stats{gap:18px}.bb-stats div b{font-size:18px}
+  .row-head,.track{padding-left:16px;padding-right:16px}
+  .arrow{display:none}
+  .poster{width:160px}.top .n{font-size:120px;width:88px}
+  footer{padding:30px 16px 40px;flex-direction:column;gap:8px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="brand"><div class="mark"></div><b>BEN HUR ANDRADE</b><span class="co">Clínica Aurora</span></div>
+  <div class="tabs"><a class="on">Início</a><a>Resultados</a><a>Criativos</a><a>Evolução</a><a>Financeiro</a></div>
+  <div class="right"><div class="bell">🔔<i></i></div><div class="avatar" id="avatarBtn" title="Meu perfil">CA</div></div>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dr-head">
+    <div class="avatar" style="width:52px;height:52px;font-size:18px;border-radius:14px">CA</div>
+    <div><b>Clínica Aurora</b><p>Dra. Carolina Assis · carolina@clinicaaurora.com.br</p></div>
+    <span class="close" id="closeDrawer">×</span>
+  </div>
+
+  <div class="dr-block">
+    <span class="mono">Sua conta</span>
+    <div class="kv"><span>Cliente desde</span><b>12 jul 2026</b></div>
+    <div class="kv"><span>Contrato</span><b>CTR-000003 · até 12 jan 2027</b></div>
+    <div class="kv"><span>Responsável</span><b>Ben Hur Andrade</b></div>
+  </div>
+
+  <div class="dr-block">
+    <span class="mono">Mensalidade</span>
+    <div class="fee"><div><b>R$ 2.950<small>/mês</small></b><p>vence todo dia 28</p></div><span class="badge ok">Em dia</span></div>
+    <div class="kv"><span>Próximo vencimento</span><b>28 set 2026 · em 4 dias</b></div>
+    <div class="kv"><span>Última fatura</span><b>001008 · paga em 27 ago</b></div>
+    <a class="btn ghost small">Ver faturas e 2ª via</a>
+  </div>
+
+  <div class="dr-block">
+    <span class="mono">O que está contratado</span>
+    <div class="chips"><span>Tráfego · Meta Ads</span><span>Tráfego · Google Ads</span><span>Redes sociais · Instagram</span><span>Design para redes</span><span>Design para tráfego</span><span>Foto e filmmaker</span></div>
+    <p class="hint">Quer adicionar uma frente? <a>Solicitar proposta</a></p>
+  </div>
+
+  <div class="dr-block">
+    <span class="mono">Acesso</span>
+    <div class="kv"><span>Trocar senha</span><b>›</b></div>
+    <div class="kv" id="teamBtn" style="cursor:pointer"><span>Equipe e permissões <em style="font-style:normal;color:var(--muted);font-size:12px">· 3 usuários</em></span><b>›</b></div>
+    <div class="kv"><span>Sair</span><b>›</b></div>
+  </div>
+  <p class="hint" style="padding:0 22px 22px">Contrato, mensalidade e status são atualizados pela equipe Ben Hur Andrade e aparecem aqui automaticamente.</p>
+</aside>
+
+<div class="modal" id="teamModal">
+  <div class="md-box">
+    <div class="md-head"><div><b>Equipe e permissões</b><p>Você decide o que cada pessoa da Clínica Aurora enxerga.</p></div><span class="close" id="closeTeam">×</span></div>
+    <div class="members">
+      <div class="mem"><div class="avatar" style="width:34px;height:34px;font-size:12px">CA</div><div><b>Dra. Carolina Assis</b><p>carolina@clinicaaurora.com.br</p></div><span class="badge ok">Admin</span></div>
+      <div class="mem"><div class="avatar" style="width:34px;height:34px;font-size:12px;background:linear-gradient(135deg,#2a2a2e,#4a4a52);color:#f2efe8">RM</div><div><b>Rafael Moreira</b><p>Gerente · vê resultados e criativos</p></div><span class="badge">Gerente</span><a class="edit">editar</a></div>
+      <div class="mem"><div class="avatar" style="width:34px;height:34px;font-size:12px;background:linear-gradient(135deg,#2a2a2e,#4a4a52);color:#f2efe8">JP</div><div><b>Julia Prado</b><p>Gerente · só criativos e aprovação</p></div><span class="badge">Gerente</span><a class="edit">editar</a></div>
+    </div>
+    <div class="invite">
+      <span class="mono">Convidar novo usuário</span>
+      <div class="frow"><input placeholder="Nome" value="Marcos Lima"><input placeholder="E-mail" value="marcos@clinicaaurora.com.br"></div>
+      <div class="roles"><label class="on"><input type="radio" name="r" checked><b>Gerente</b><span>vê só o que você marcar</span></label><label><input type="radio" name="r"><b>Admin</b><span>vê tudo e convida pessoas</span></label></div>
+      <span class="mono" style="display:block;margin:16px 0 10px">O que o gerente pode ver</span>
+      <div class="perms">
+        <label><input type="checkbox" checked><span>Tela inicial</span></label>
+        <label><input type="checkbox" checked><span>Resultados das redes</span></label>
+        <label><input type="checkbox" checked><span>Resultados de tráfego</span></label>
+        <label><input type="checkbox" checked><span>Leads do mês</span></label>
+        <label><input type="checkbox" checked><span>Ver criativos</span></label>
+        <label><input type="checkbox"><span>Aprovar criativos</span></label>
+        <label><input type="checkbox" checked><span>Quadro evolutivo</span></label>
+        <label><input type="checkbox"><span>Financeiro e contrato</span></label>
+        <label><input type="checkbox" checked><span>Solicitações</span></label>
+        <label><input type="checkbox"><span>Pesquisas</span></label>
+        <label><input type="checkbox"><span>Documentos da marca</span></label>
+        <label><input type="checkbox"><span>Serviços disponíveis</span></label>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end"><a class="btn ghost small" style="margin:0" id="cancelTeam">Cancelar</a><a class="btn primary small" style="margin:0">Enviar convite</a></div>
+    </div>
+  </div>
+</div>
+
+<section class="billboard">
+  <div class="art">
+    <div class="glow"></div><div class="grid"></div>
+    <svg viewBox="0 0 900 400" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9b45b" stop-opacity=".30"/><stop offset="1" stop-color="#d9b45b" stop-opacity="0"/></linearGradient>
+        <linearGradient id="stroke" x1="0" x2="1"><stop offset="0" stop-color="#8a6d1f"/><stop offset="1" stop-color="#f3e2a8"/></linearGradient>
+      </defs>
+      <path id="area" d="M0,330 C80,320 120,300 180,290 S300,270 360,250 S470,220 540,200 S660,150 730,120 S840,60 900,40 L900,400 L0,400Z" fill="url(#fill)" opacity="0"/>
+      <path id="line" d="M0,330 C80,320 120,300 180,290 S300,270 360,250 S470,220 540,200 S660,150 730,120 S840,60 900,40" fill="none" stroke="url(#stroke)" stroke-width="3" stroke-linecap="round"/>
+      <g id="inv" opacity="0" font-family="JetBrains Mono" font-size="11" fill="#6b7a96" letter-spacing="1">
+        <line x1="300" y1="0" x2="300" y2="400" stroke="#ffffff" stroke-opacity=".06"/><line x1="600" y1="0" x2="600" y2="400" stroke="#ffffff" stroke-opacity=".06"/>
+        <text x="20" y="386">JUL</text><text x="320" y="386">AGO</text><text x="620" y="386">SET</text>
+      </g>
+      <text x="790" y="22" text-anchor="end" font-family="JetBrains Mono" font-size="11" fill="#ebd08a" letter-spacing="1" opacity="0" class="lbl">VENDAS GERADAS · ACUMULADO · R$ 61,4 MIL</text>
+      <circle id="dot" cx="900" cy="40" r="6" fill="#fff" opacity="0"><animate attributeName="r" values="6;9;6" dur="2s" repeatCount="indefinite"/></circle>
+    </svg>
+  </div>
+  <div class="bb-copy">
+    <div class="mono">Clínica Aurora · desde 12 jul 2026 · dia 74 do projeto</div>
+    <h1>Sua clínica não cresceu por acaso. <span>Cresceu por gestão.</span></h1>
+    <p>Isso é o que o trabalho já gerou para a Clínica Aurora desde julho. Número do painel, não print bonito.</p>
+    <div class="bb-actions">
+      <a class="btn primary">▶ Ver relatório de setembro</a>
+      <a class="btn ghost">Aprovar criativos <span class="pill">3</span></a>
+    </div>
+    <div class="bb-stats">
+      <div><b><small>R$</small> <span data-count="61.4" data-decimals="1" data-suffix=" mil">0</span></b><span class="mono">Vendas geradas</span></div>
+      <div><b data-count="412">0</b><span class="mono">Leads</span></div>
+      <div><b data-count="3120" data-prefix="+">0</b><span class="mono">Seguidores</span></div>
+      <div><b data-count="48">0</b><span class="mono">Criativos entregues</span></div>
+      <div><b data-count="2">0</b><span class="mono">Páginas no ar</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="row">
+  <div class="row-head"><h2><i></i>Resultados do mês</h2><a class="mono">Ver tudo ›</a></div>
+  <div class="track-wrap">
+    <div class="arrow l"><span>‹</span></div><div class="arrow r"><span>›</span></div>
+    <div class="track">
+      <div class="kpi"><span class="mono">Leads gerados</span><div class="v" data-count="137">0</div><div class="d up">▲ 24% <span style="color:var(--muted)">vs agosto</span></div><svg viewBox="0 0 120 48"><path d="M0,40 L20,34 L40,36 L60,26 L80,20 L100,16 L120,10" fill="none" stroke="#3ddc97" stroke-width="2"/></svg></div>
+      <div class="kpi"><span class="mono">Vendas atribuídas</span><div class="v"><small style="margin:0 4px 0 0">R$</small><span data-count="20160">0</span></div><div class="d up">▲ 31% <span style="color:var(--muted)">vs agosto</span></div><svg viewBox="0 0 120 48"><path d="M0,42 L20,38 L40,30 L60,28 L80,20 L100,14 L120,6" fill="none" stroke="#3ddc97" stroke-width="2"/></svg></div>
+      <div class="kpi"><span class="mono">Custo por lead</span><div class="v"><small style="margin:0 4px 0 0">R$</small><span data-count="30.65" data-decimals="2">0</span></div><div class="d up">▼ 9% <span style="color:var(--muted)">mais barato</span></div><svg viewBox="0 0 120 48"><path d="M0,10 L20,14 L40,12 L60,20 L80,24 L100,30 L120,34" fill="none" stroke="#3ddc97" stroke-width="2"/></svg></div>
+      <div class="kpi"><span class="mono">Retorno sobre mídia</span><div class="v" data-count="4.8" data-decimals="1" data-suffix="x">0</div><div class="d up">▲ 0,6x <span style="color:var(--muted)">vs agosto</span></div><svg viewBox="0 0 120 48"><path d="M0,36 L20,32 L40,30 L60,24 L80,22 L100,14 L120,10" fill="none" stroke="#3ddc97" stroke-width="2"/></svg></div>
+      <div class="kpi"><span class="mono">Investimento em mídia</span><div class="v"><small style="margin:0 4px 0 0">R$</small><span data-count="4200">0</span></div><div class="d" style="color:var(--muted)">orçamento do mês: R$ 4.500</div><svg viewBox="0 0 120 48"><path d="M0,30 L20,28 L40,30 L60,26 L80,26 L100,24 L120,22" fill="none" stroke="#7fb0ff" stroke-width="2"/></svg></div>
+      <div class="kpi"><span class="mono">Alcance</span><div class="v" data-count="184" data-suffix=" mil">0</div><div class="d up">▲ 38% <span style="color:var(--muted)">vs agosto</span></div><svg viewBox="0 0 120 48"><path d="M0,42 L20,38 L40,34 L60,22 L80,24 L100,12 L120,8" fill="none" stroke="#3ddc97" stroke-width="2"/></svg></div>
+      <div class="kpi"><span class="mono">Seguidores</span><div class="v" data-count="12480">0</div><div class="d up">▲ 1.248 <span style="color:var(--muted)">no mês</span></div><svg viewBox="0 0 120 48"><path d="M0,40 L20,36 L40,30 L60,28 L80,18 L100,14 L120,6" fill="none" stroke="#3ddc97" stroke-width="2"/></svg></div>
+    </div>
+  </div>
+</section>
+
+<section class="row">
+  <div class="row-head"><h2><i style="background:var(--warn);color:var(--warn)"></i>Pendências pra você</h2></div>
+  <div class="track-wrap"><div class="track">
+    <div class="todo"><div class="ic a">✦</div><div><b>3 criativos aguardando aprovação</b><p>Carrossel de outubro, Reels e 1 anúncio</p></div><span class="go">›</span></div>
+    <div class="todo"><div class="ic w">◎</div><div><b>18 leads ainda sem retorno</b><p>Chegaram nas últimas 48 h pela campanha de avaliação</p></div><span class="go">›</span></div>
+    <div class="todo"><div class="ic g">★</div><div><b>Como está sendo o trabalho?</b><p>Pesquisa de 2 minutos · sua opinião muda o plano</p></div><span class="go">›</span></div>
+  </div></div>
+</section>
+
+<section class="row">
+  <div class="row-head"><h2><i style="background:var(--c-design);color:var(--c-design)"></i>Criativos novos</h2><a class="mono">Ver todos ›</a></div>
+  <div class="track-wrap">
+    <div class="arrow l"><span>‹</span></div><div class="arrow r"><span>›</span></div>
+    <div class="track">
+      <div class="poster"><div class="bg g1"></div><span class="tag">Reels</span><i class="status" style="background:var(--warn)"></i><div class="art-text">Seu sorriso em 3 sessões</div><div class="play">▶</div><div class="meta"><b>Reels · lentes</b><span>Aguardando aprovação</span></div></div>
+      <div class="poster"><div class="bg g2"></div><span class="tag">Carrossel</span><i class="status" style="background:var(--warn)"></i><div class="art-text">5 mitos sobre harmonização</div><div class="meta"><b>Carrossel · 7 slides</b><span>Aguardando aprovação</span></div></div>
+      <div class="poster"><div class="bg g3"></div><span class="tag">Anúncio</span><i class="status" style="background:var(--warn)"></i><div class="art-text">Avaliação gratuita em outubro</div><div class="meta"><b>Meta Ads · 1080x1350</b><span>Aguardando aprovação</span></div></div>
+      <div class="poster"><div class="bg g4"></div><span class="tag">Story</span><i class="status" style="background:var(--ok)"></i><div class="art-text">Antes e depois</div><div class="meta"><b>Stories · sequência de 4</b><span>Aprovado · 22 set</span></div></div>
+      <div class="poster"><div class="bg g5"></div><span class="tag">Vídeo</span><i class="status" style="background:var(--ok)"></i><div class="art-text">Bastidores da clínica</div><div class="play">▶</div><div class="meta"><b>Vídeo · 42 s</b><span>Publicado · 18 set</span></div></div>
+      <div class="poster"><div class="bg g6"></div><span class="tag">Post</span><i class="status" style="background:var(--ok)"></i><div class="art-text">Depoimento da Marina</div><div class="meta"><b>Feed · 1080x1350</b><span>Publicado · 15 set</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="row">
+  <div class="row-head"><h2><i style="background:var(--c-social);color:var(--c-social)"></i>Top 5 posts de setembro</h2><a class="mono">Ver ranking ›</a></div>
+  <div class="track-wrap"><div class="track">
+    <div class="top"><div class="n">1</div><div class="card g1"><div class="m"><b>91,4 mil</b>Reels · dia 12</div></div></div>
+    <div class="top"><div class="n">2</div><div class="card g3"><div class="m"><b>38,2 mil</b>Carrossel · dia 5</div></div></div>
+    <div class="top"><div class="n">3</div><div class="card g5"><div class="m"><b>21,7 mil</b>Vídeo · dia 18</div></div></div>
+    <div class="top"><div class="n">4</div><div class="card g2"><div class="m"><b>14,9 mil</b>Post · dia 9</div></div></div>
+    <div class="top"><div class="n">5</div><div class="card g4"><div class="m"><b>11,3 mil</b>Story · dia 22</div></div></div>
+  </div></div>
+</section>
+
+<section class="row">
+  <div class="row-head"><h2><i></i>Sua jornada</h2><a class="mono">Ver quadro completo ›</a></div>
+  <div class="track-wrap"><div class="track">
+    <div class="ep done"><div class="num">01</div><b>Diagnóstico</b><p>Auditoria do perfil, concorrência e definição das metas.</p><div class="bar"><i data-w="100"></i></div><div class="foot"><span class="mono">Concluída</span><span class="mono">jul 2026</span></div></div>
+    <div class="ep done"><div class="num">02</div><b>Estrutura</b><p>Identidade visual, página de vendas e configuração dos pixels.</p><div class="bar"><i data-w="100"></i></div><div class="foot"><span class="mono">Concluída</span><span class="mono">ago 2026</span></div></div>
+    <div class="ep now"><div class="num">03</div><b>Tráfego e conteúdo</b><p>Campanhas ativas, 12 posts por mês e captação de leads.</p><div class="bar"><i data-w="68"></i></div><div class="foot"><span class="mono" style="color:var(--accent2)">Em andamento · 68%</span><span class="mono">set a nov</span></div></div>
+    <div class="ep"><div class="num">04</div><b>Escala</b><p>Aumento de verba, funil de remarketing e processo comercial.</p><div class="bar"><i data-w="0"></i></div><div class="foot"><span class="mono">Próxima</span><span class="mono">dez 2026</span></div></div>
+  </div></div>
+</section>
+
+<section class="row">
+  <div class="row-head"><h2><i style="background:var(--c-ads);color:var(--c-ads)"></i>Campanhas ativas</h2><a class="mono">Ver tráfego ›</a></div>
+  <div class="track-wrap"><div class="track">
+    <div class="camp"><div class="hd"><div class="ch meta">M</div><b>Avaliação gratuita · leads</b><span class="live">Ativa</span></div><div class="g"><div><span class="mono">Gasto</span><b>R$ 2.860</b></div><div><span class="mono">Leads</span><b>104</b></div><div><span class="mono">CPL</span><b>R$ 27,50</b></div></div></div>
+    <div class="camp"><div class="hd"><div class="ch google">G</div><b>Pesquisa · lentes BH</b><span class="live">Ativa</span></div><div class="g"><div><span class="mono">Gasto</span><b>R$ 940</b></div><div><span class="mono">Cliques</span><b>412</b></div><div><span class="mono">Leads</span><b>33</b></div></div></div>
+    <div class="camp"><div class="hd"><div class="ch meta">M</div><b>Remarketing · vídeo</b><span class="live">Ativa</span></div><div class="g"><div><span class="mono">Gasto</span><b>R$ 400</b></div><div><span class="mono">Alcance</span><b>21 mil</b></div><div><span class="mono">CPM</span><b>R$ 9,10</b></div></div></div>
+  </div></div>
+</section>
+
+<section class="row">
+  <div class="row-head"><h2><i></i>Serviços disponíveis pra você</h2><a class="mono">Valores para o seu contrato ›</a></div>
+  <div class="track-wrap">
+    <div class="arrow l"><span>‹</span></div><div class="arrow r"><span>›</span></div>
+    <div class="track">
+      <div class="offer"><span class="mono">Web design</span><b>Página de vendas</b><p>Página feita pra converter o tráfego que já está rodando.</p><div class="price"><small>até</small>3x <span>de R$ 1.166,67</span><small>no cartão</small></div><p class="full">ou R$ 3.500 à vista</p><a class="wa" href="https://wa.me/5511951751968?text=Ol%C3%A1%20Ben%2C%20sou%20da%20Cl%C3%ADnica%20Aurora%20e%20quero%20contratar%3A%20P%C3%A1gina%20de%20vendas" target="_blank">Quero contratar</a></div>
+      <div class="offer"><span class="mono">Funil</span><b>Funil de vendas</b><p>Captura, nutrição e oferta automatizadas dos leads que já chegam.</p><div class="price"><small>até</small>3x <span>de R$ 633,33</span><small>no cartão · mês</small></div><p class="full">ou R$ 1.900 à vista /mês</p><a class="wa" href="https://wa.me/5511951751968?text=Ol%C3%A1%20Ben%2C%20sou%20da%20Cl%C3%ADnica%20Aurora%20e%20quero%20contratar%3A%20Funil%20de%20vendas" target="_blank">Quero contratar</a></div>
+      <div class="offer"><span class="mono">Comercial</span><b>Processo comercial</b><p>Script, CRM e rotina pra sua equipe fechar mais dos 137 leads.</p><div class="price"><small>até</small>3x <span>de R$ 833,33</span><small>no cartão · mês</small></div><p class="full">ou R$ 2.500 à vista /mês</p><a class="wa" href="https://wa.me/5511951751968?text=Ol%C3%A1%20Ben%2C%20sou%20da%20Cl%C3%ADnica%20Aurora%20e%20quero%20contratar%3A%20Processo%20comercial" target="_blank">Quero contratar</a></div>
+      <div class="offer"><span class="mono">Marca</span><b>Branding</b><p>Identidade completa, manual da marca e aplicação nas redes.</p><div class="price"><small>até</small>3x <span>de R$ 1.600,00</span><small>no cartão</small></div><p class="full">ou R$ 4.800 à vista</p><a class="wa" href="https://wa.me/5511951751968?text=Ol%C3%A1%20Ben%2C%20sou%20da%20Cl%C3%ADnica%20Aurora%20e%20quero%20contratar%3A%20Branding" target="_blank">Quero contratar</a></div>
+      <div class="offer"><span class="mono">Copy</span><b>Copywriter</b><p>Textos de anúncio, página e e-mail escritos pra vender.</p><div class="price"><small>até</small>3x <span>de R$ 400,00</span><small>no cartão · mês</small></div><p class="full">ou R$ 1.200 à vista /mês</p><a class="wa" href="https://wa.me/5511951751968?text=Ol%C3%A1%20Ben%2C%20sou%20da%20Cl%C3%ADnica%20Aurora%20e%20quero%20contratar%3A%20Copywriter" target="_blank">Quero contratar</a></div>
+      <div class="offer"><span class="mono">Tráfego</span><b>TikTok Ads</b><p>Novo canal com o mesmo criativo que já performa no Meta.</p><div class="price"><small>até</small>3x <span>de R$ 300,00</span><small>no cartão · mês</small></div><p class="full">ou R$ 900 à vista /mês</p><a class="wa" href="https://wa.me/5511951751968?text=Ol%C3%A1%20Ben%2C%20sou%20da%20Cl%C3%ADnica%20Aurora%20e%20quero%20contratar%3A%20TikTok%20Ads" target="_blank">Quero contratar</a></div>
+    </div>
+  </div>
+</section>
+
+<footer><span class="mono">Ben Hur Andrade · painel do cliente</span><span class="mono">Dados atualizados hoje às 06:00</span></footer>
+
+<script>
+// nav solid on scroll
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>nav.classList.toggle('solid',scrollY>40),{passive:true});
+window.scrollTo(0,0);
+
+// hero line draw
+const line=document.getElementById('line'),area=document.getElementById('area'),dot=document.getElementById('dot');
+const L=line.getTotalLength();line.style.strokeDasharray=L;line.style.strokeDashoffset=L;
+line.style.transition='stroke-dashoffset 2.2s cubic-bezier(.2,.8,.2,1)';
+requestAnimationFrame(()=>{line.style.strokeDashoffset=0;
+  setTimeout(()=>{area.style.transition='opacity 1s';area.style.opacity=1;dot.style.opacity=1;
+    document.querySelectorAll('#inv,.lbl').forEach(e=>{e.style.transition='opacity 1s';e.style.opacity=1})},1200)});
+
+// count up
+const fmt=(v,d)=>v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+function countUp(el){const end=parseFloat(el.dataset.count),d=+(el.dataset.decimals||0),pre=el.dataset.prefix||'',suf=el.dataset.suffix||'';
+  const t0=performance.now(),dur=1600;
+  (function step(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);el.textContent=pre+fmt(end*e,d)+suf;if(p<1)requestAnimationFrame(step)})(t0)}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){
+  e.target.querySelectorAll('[data-count]').forEach(countUp);
+  e.target.querySelectorAll('.bar i').forEach(b=>b.style.width=b.dataset.w+'%');
+  io.unobserve(e.target)}}),{threshold:.3});
+document.querySelectorAll('section').forEach(s=>io.observe(s));
+
+// profile drawer
+const drawer=document.getElementById('drawer'),scrim=document.getElementById('scrim');
+const openD=()=>{drawer.classList.add('on');scrim.classList.add('on')},closeD=()=>{drawer.classList.remove('on');scrim.classList.remove('on')};
+document.getElementById('avatarBtn').addEventListener('click',openD);
+document.getElementById('closeDrawer').addEventListener('click',closeD);scrim.addEventListener('click',closeD);
+addEventListener('keydown',e=>e.key==='Escape'&&closeD());
+
+// team modal
+const tm=document.getElementById('teamModal');
+document.getElementById('teamBtn').addEventListener('click',()=>{closeD();tm.classList.add('on')});
+['closeTeam','cancelTeam'].forEach(id=>document.getElementById(id).addEventListener('click',()=>tm.classList.remove('on')));
+tm.addEventListener('click',e=>{if(e.target===tm)tm.classList.remove('on')});
+document.querySelectorAll('.roles label').forEach(l=>l.addEventListener('click',()=>{document.querySelectorAll('.roles label').forEach(x=>x.classList.remove('on'));l.classList.add('on')}));
+
+// row arrows
+document.querySelectorAll('.track-wrap').forEach(w=>{const t=w.querySelector('.track');
+  w.querySelector('.arrow.l')?.addEventListener('click',()=>t.scrollBy({left:-600,behavior:'smooth'}));
+  w.querySelector('.arrow.r')?.addEventListener('click',()=>t.scrollBy({left:600,behavior:'smooth'}))});
+</script>
+</body>
+</html>
