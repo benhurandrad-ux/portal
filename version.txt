@@ -1,1 +1,1 @@
-v0.4 2026-09-25 comprovante + recibo
+v0.5 2026-09-25 espaco por empresa
