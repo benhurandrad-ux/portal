@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel do Cliente</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="app.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js"></script><script src="core.js"></script></head>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="app.css?v=6">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js?v=6"></script><script src="core.js?v=6"></script></head>
 <body>
 <nav class="nav" id="nav">
   <div class="brand"><div class="mark"></div><b>BEN HUR ANDRADE</b><span class="co" id="coName"></span></div>
@@ -30,6 +30,7 @@ async function boot() {
   const name = ME.profile?.full_name || r.session.user.email; $('#avatarBtn').textContent = initials(name);
   $('#tabs').innerHTML = TABS.filter(t => can(t[2])).map(t => `<a data-r="${t[0]}">${t[1]}</a>`).join('');
   $('#tabs').addEventListener('click', e => { const a = e.target.closest('a'); if (a) location.hash = a.dataset.r; });
+  await mountWhatsApp(CO.name);
   addEventListener('hashchange', route); route();
   addEventListener('scroll', () => $('#nav').classList.toggle('solid', scrollY > 40), { passive: true });
   $('#avatarBtn').addEventListener('click', openProfile); $('#scrim').addEventListener('click', closeDrawer);
