@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recibo · Ben Hur Andrade</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js"></script>
+<style>
+:root{--gold:#D9B45B;--gold2:#8A6D1F;--ink:#1c1b18;--ink2:#4a4741;--muted:#8d887c;--line:#e7e3d8;--black:#0b0b0b}
+*{box-sizing:border-box;margin:0;padding:0}body{background:#2a2926;font-family:Poppins,sans-serif;color:var(--ink);padding:24px}
+.sheet{max-width:720px;margin:0 auto;background:#fff;border-radius:14px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.mono{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--gold);padding-bottom:18px}
+.top .wm{font-size:11px;font-weight:700;letter-spacing:.22em;color:var(--gold2)}.top h1{font-size:22px;margin-top:6px}
+.top .num{text-align:right}.top .num b{font-size:26px;font-family:"JetBrains Mono",monospace;display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}
+.box{border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;font-size:12.5px;color:var(--ink2);line-height:1.55}.box b{display:block;color:var(--ink);font-size:14px;margin:4px 0}
+.val{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a1408;border-radius:12px;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;margin:8px 0 18px}
+.val b{font-size:30px}.val small{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.8}
+p.txt{font-size:13.5px;line-height:1.7;text-align:justify}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink2)}.kv b{color:var(--ink)}
+.sig{margin-top:44px;width:280px;border-top:1.5px solid var(--ink);padding-top:8px;font-size:12px}.sig b{display:block;font-size:13px}
+.foot{margin-top:30px;display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.btn{position:fixed;right:24px;bottom:24px;background:var(--gold);color:#141006;border:0;border-radius:10px;padding:12px 18px;font:600 14px Poppins;cursor:pointer}
+@media print{body{background:#fff;padding:0}.sheet{box-shadow:none;max-width:none;border-radius:0}.btn{display:none}@page{size:A4;margin:16mm}}
+@media(max-width:640px){.sheet{padding:22px}.grid{grid-template-columns:1fr}.val b{font-size:24px}}
+</style></head><body><div class="sheet" id="s">Carregando recibo...</div><button class="btn" onclick="window.print()">Salvar PDF / imprimir</button>
+<script>
+const sb = supabase.createClient(PORTAL.url, PORTAL.anonKey); const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }); const dt = s => new Date(s).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+const ext = n => { const u=['','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'],d=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'],c=['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+  const f=x=>{x=Math.floor(x);if(x===0)return'';if(x===100)return'cem';let s=[];if(x>=100){s.push(c[Math.floor(x/100)]);x%=100}if(x>=20){s.push(d[Math.floor(x/10)]+(x%10?' e '+u[x%10]:''))}else if(x>0)s.push(u[x]);return s.join(' e ')};
+  const i=Math.floor(n),cents=Math.round((n-i)*100);let p=[];const mil=Math.floor(i/1000),r=i%1000;if(mil)p.push(mil===1?'mil':f(mil)+' mil');if(r)p.push(f(r));let t=p.join(mil&&r&&r<100?' e ':' ')+(i===1?' real':' reais');if(cents)t+=' e '+f(cents)+(cents===1?' centavo':' centavos');return t};
+(async () => { const t = new URLSearchParams(location.search).get('t'); const { data: r } = await sb.rpc('receipt_public', { p_token: t }); if (!r) { document.getElementById('s').innerHTML = '<p>Recibo não encontrado.</p>'; return; }
+  document.title = 'Recibo ' + r.receipt_number; const comp = new Date(r.competence + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  document.getElementById('s').innerHTML = `<div class="top"><div><div class="wm">BEN HUR ANDRADE</div><h1>Recibo de pagamento</h1><div class="mono" style="margin-top:4px">${esc(r.emitente.razao)}</div></div><div class="num"><div class="mono">Recibo nº</div><b>${esc(r.receipt_number)}</b><div class="mono">${dt(r.paid_at)}</div></div></div>
+  <div class="val"><div><small>Valor recebido</small><b>${money(r.amount)}</b></div><div style="text-align:right;font-size:12px"><small>Referente a</small>Fatura ${esc(r.invoice_number)} · ${esc(comp)}${r.contrato ? '<br>Contrato ' + esc(r.contrato) : ''}</div></div>
+  <p class="txt">Recebemos de <b>${esc(r.pagador.nome)}</b>${r.pagador.cnpj ? ', CNPJ ' + esc(r.pagador.cnpj) : ''}, a importância de <b>${money(r.amount)}</b> (${ext(Number(r.amount))}), via ${esc(r.paid_method).toUpperCase()}, referente à fatura ${esc(r.invoice_number)}, competência ${esc(comp)}${r.notes ? ' (' + esc(r.notes) + ')' : ''}, pela prestação de serviços de marketing digital, dando plena, geral e irrevogável quitação do valor acima.</p>
+  <div class="grid"><div class="box"><span class="mono">Emitente</span><b>${esc(r.emitente.razao)}</b>CNPJ ${esc(r.emitente.cnpj)}<br>${esc(r.emitente.endereco)}<br>Pix (CNPJ) ${esc(r.emitente.pix)}</div><div class="box"><span class="mono">Pagador</span><b>${esc(r.pagador.nome)}</b>${r.pagador.cnpj ? 'CNPJ ' + esc(r.pagador.cnpj) + '<br>' : ''}${esc(r.pagador.endereco || '')}</div></div>
+  <div class="kv"><span>Forma de pagamento</span><b>${esc(r.paid_method).toUpperCase()}</b></div><div class="kv"><span>Data do pagamento</span><b>${dt(r.paid_at)}</b></div><div class="kv"><span>Fatura</span><b>${esc(r.invoice_number)}</b></div>
+  <div class="sig"><b>${esc(r.emitente.razao)}</b>Ben Hur Andrade · emitido eletronicamente</div>
+  <div class="foot"><span>CNPJ ${esc(r.emitente.cnpj)} · contato (11) 95175-1968</span><span>Recibo ${esc(r.receipt_number)} · gerado por painel.benhurandrade.com.br</span></div>`; })();
+</script></body></html>

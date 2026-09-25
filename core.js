@@ -13,7 +13,7 @@ const daysUntil = s => Math.ceil((new Date(s + 'T12:00:00') - new Date()) / 864e
 const initials = n => (n || '?').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
 const toast = (msg, kind='') => { let t = $('#toast'); if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); } t.textContent = msg; t.className = 'show ' + kind; clearTimeout(t._h); t._h = setTimeout(() => t.className = '', 3200); };
 const KIND_LABEL = { post:'Post', carousel:'Carrossel', reel:'Reels', story:'Story', ad:'Anúncio', video:'Vídeo', site:'Site', other:'Arquivo' };
-const INVOICE_LABEL = { open:'Em aberto', paid:'Paga', overdue:'Atrasada', cancelled:'Cancelada' };
+const INVOICE_LABEL = { open:'Em aberto', review:'Comprovante em análise', paid:'Paga', overdue:'Atrasada', cancelled:'Cancelada' };
 const STATUS_LABEL = { draft:'Rascunho', pending:'Aguardando aprovação', approved:'Aprovado', changes:'Pedido de ajuste', published:'Publicado' };
 const MODULES = [['overview','Tela inicial'],['results_social','Resultados das redes'],['results_ads','Resultados de tráfego'],['leads','Leads do mês'],['creatives_view','Ver criativos'],['creatives_approve','Aprovar criativos'],['roadmap','Quadro evolutivo'],['financial','Financeiro e contrato'],['requests','Solicitações'],['nps','Pesquisas'],['documents','Documentos da marca'],['offers','Serviços disponíveis']];
 const CATEGORY_COLOR = { trafego:'var(--c-ads)', social:'var(--c-social)', design:'var(--c-design)', web:'var(--c-web)', estrategia:'var(--accent)', comercial:'var(--c-comercial)', marca:'var(--accent)', copy:'var(--c-design)', video:'var(--c-video)' };
