@@ -1,1 +1,1 @@
-v1.0 2026-09-25 BI completo + cofre + pastas + responsivo
+v1.1 2026-09-25 lixeira em pastas e criativos

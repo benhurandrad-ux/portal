@@ -48,12 +48,13 @@ async function mountWhatsApp(companyName) { try { const { data } = await sb.rpc(
 function slug(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'_').slice(0,80); }
 
 /* ===== pastas de criativos ===== */
+const TRASH_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
 const folderOf = c => c.folder || 'Sem pasta';
 function groupFolders(items) { const m = {}; items.forEach(c => { const f = folderOf(c); (m[f] = m[f] || []).push(c); });
   return Object.entries(m).map(([name, arr]) => ({ name, items: arr, cover: arr.find(c => (c.mime || '').startsWith('image/')) || arr[0], pending: arr.filter(c => c.status === 'pending').length, last: arr.map(c => c.created_at).sort().pop() })).sort((a, b) => b.last.localeCompare(a.last)); }
-function folderGrid(groups, urls, openFn) { return `<div class="folders">${groups.map(g => { const u = urls[g.cover?.thumb_path || g.cover?.storage_path]; const img = (g.cover?.mime || '').startsWith('image/');
+function folderGrid(groups, urls, openFn, delFn) { return `<div class="folders">${groups.map(g => { const u = urls[g.cover?.thumb_path || g.cover?.storage_path]; const img = (g.cover?.mime || '').startsWith('image/');
   const kinds = [...new Set(g.items.map(c => KIND_LABEL[c.kind] || 'Arquivo'))].slice(0, 3).join(' · ');
-  return `<div class="folder" onclick="${openFn}(${JSON.stringify(g.name).replace(/"/g, '&quot;')})"><div class="folder-cover">${u && img ? `<img src="${u}" alt="">` : `<div class="file">📁</div>`}<span class="folder-n">${g.items.length}</span></div><div class="folder-m"><b>📁 ${esc(g.name)}</b><span>${kinds} · ${dtShort(g.last.slice(0, 10))}</span>${g.pending ? `<em class="badge warn">${g.pending} para aprovar</em>` : '<em class="badge ok">✓ em dia</em>'}</div></div>`; }).join('')}</div>`; }
+  return `<div class="folder" onclick="${openFn}(${JSON.stringify(g.name).replace(/"/g, '&quot;')})"><div class="folder-cover">${u && img ? `<img src="${u}" alt="">` : `<div class="file">📁</div>`}<span class="folder-n">${g.items.length}</span>${delFn ? `<button class="trash" title="Excluir pasta" aria-label="Excluir pasta ${esc(g.name)}" onclick="event.stopPropagation();${delFn}(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${TRASH_SVG}</button>` : ''}</div><div class="folder-m"><b>📁 ${esc(g.name)}</b><span>${kinds} · ${dtShort(g.last.slice(0, 10))}</span>${g.pending ? `<em class="badge warn">${g.pending} para aprovar</em>` : '<em class="badge ok">✓ em dia</em>'}</div></div>`; }).join('')}</div>`; }
 function folderCrumb(name, backFn, extra = '') { return `<div class="toolbar" style="margin:6px 0 14px"><a class="btn sm ghost" onclick="${backFn}()">‹ Todas as pastas</a><h3 style="margin:0;font-size:17px">📁 ${esc(name)}</h3><span class="sp"></span>${extra}</div>`; }
 
 /* tabelas: rótulo de cada célula (vira cartão no celular) */

@@ -351,3 +351,9 @@ td .btn.sm{margin:2px 0}
   .card table:not(.nostack) td:last-child:has(.btn)::before{display:none}
 }
 .chk{display:inline-flex!important;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;width:auto!important;justify-content:flex-start;margin:0}.chk input{width:16px!important;height:16px;flex:0 0 16px;margin:0;padding:0}
+.trash{position:absolute;top:10px;right:10px;z-index:4;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(10,10,12,.72);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);color:#f2efe8;cursor:pointer;opacity:.85;transition:background .2s,color .2s,opacity .2s,transform .2s}
+.trash:hover{background:rgba(255,93,108,.92);color:#fff;border-color:transparent;opacity:1;transform:scale(1.06)}
+.trash:focus-visible{outline:2px solid var(--bad);outline-offset:2px}
+.poster .trash{top:8px;right:8px}
+.poster .status{right:50px}
+@media (hover:hover){.folder .trash,.poster .trash{opacity:0}.folder:hover .trash,.poster:hover .trash,.trash:focus-visible{opacity:.9}}
