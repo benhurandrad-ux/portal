@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Contrato · Ben Hur Andrade</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="app.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js"></script><script src="core.js"></script>
+<style>
+.doc{background:#fff;color:#1c1b18;font-family:Poppins,sans-serif;font-size:14px;line-height:1.6;border-radius:16px;padding:32px;margin-top:18px}
+.doc h1{font-size:24px;font-weight:700;margin:4px 0 14px}.doc .cl{display:flex;align-items:baseline;gap:10px;border-bottom:1.5px solid #e7e3d8;padding-bottom:6px;margin:22px 0 10px}
+.doc .cl .n{font-size:18px;font-weight:700;color:#8a6d1f}.doc .cl h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.doc p{text-align:justify;margin:0 0 8px}.doc .grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.doc .grid div{background:#f7f5ef;border-radius:6px;padding:8px 10px;font-size:13px;display:flex;gap:8px}.doc .grid i{font-style:normal;font-weight:700;color:#8a6d1f}
+.doc ol{list-style:none}.doc ol li{display:flex;gap:10px;margin-bottom:6px;text-align:justify}.doc ol li i{font-style:normal;font-weight:700;color:#8a6d1f}
+.doc .hl{color:#8a6d1f;font-weight:600;background:#F6EFD9;padding:0 4px;border-radius:3px}.doc .box{border-left:3px solid #d9b45b;background:#F6EFD9;padding:10px 14px;border-radius:0 8px 8px 0;margin:6px 0 10px}
+.doc .pay{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}.doc .pay .card{background:linear-gradient(135deg,#8a6d1f,#d9b45b);color:#1a1408;border-radius:10px;padding:16px}.doc .pay .card b{display:block;font-size:22px}.doc .pay .list{border:1.5px solid #e7e3d8;border-radius:10px;padding:8px 14px}.doc .pay .list div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e7e3d8;font-size:13px}.doc .pay .list div:last-child{border:0}
+.doc .bank{background:#0b0b0b;color:#fff;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:10px}
+.doc .parties{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}.doc .party{border:1.5px solid #e7e3d8;border-top:3px solid #d9b45b;border-radius:10px;padding:12px 14px;font-size:12.5px;color:#4a4741}.doc .party b{display:block;color:#1c1b18;font-size:14px}
+.doc .stamp{border:2px solid #3ddc97;color:#1c1b18;border-radius:12px;padding:14px 16px;margin-top:22px;background:#f0fbf5;font-size:13px}
+.sign{padding:18px 0}
+.otp{display:flex;gap:8px;justify-content:center;margin:10px 0}.otp input{width:48px;height:56px;text-align:center;font-size:24px;font-weight:600}
+@media(max-width:820px){.doc{padding:20px}.doc .grid,.doc .pay,.doc .parties{grid-template-columns:1fr}.doc .bank{flex-direction:column}}
+</style></head>
+<body><div class="wrap" style="max-width:860px;padding-top:40px">
+<div class="brand"><div class="mark"></div><b>BEN HUR ANDRADE</b></div>
+<div id="app"><div class="empty">Carregando contrato...</div></div>
+</div>
+<script>
+const T = new URLSearchParams(location.search).get('t'); let C = null, IP = null;
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/==(.+?)==/g, '<span class="hl">$1</span>');
+const ORD = ['primeira','segunda','terceira','quarta','quinta','sexta','sétima','oitava','nona','décima'];
+fetch('https://api.ipify.org?format=json').then(r => r.json()).then(j => IP = j.ip).catch(() => {});
+function renderDoc(d) { if (!d) return `<div class="doc"><h1>${esc(C.title)}</h1><p>Contrato ${esc(C.number)} entre <b>${esc(C.legal_name || C.company)}</b> (CNPJ ${esc(C.cnpj || '')}) e WorldX Digital Ltda, com vigência de ${C.months} meses (${dtShort(C.start_date)} a ${dtShort(C.end_date)}), mensalidade de ${money(C.monthly_amount)} com vencimento todo dia ${C.due_day}.</p><div class="cl"><span class="n">01</span><h2>Serviços contratados</h2></div><div class="grid">${(C.services || []).map((s, i) => `<div><i>${String(i + 1).padStart(2, '0')}</i>${esc(s)}</div>`).join('')}</div></div>`;
+  let h = `<div class="doc"><div class="mono" style="color:#8a6d1f">${esc(d.meta?.kicker || '')}</div><h1>${esc(d.meta?.titulo || C.title)}</h1><div class="mono" style="color:#8d887c">${(d.meta?.campos || []).filter(c => c[0] || c[1]).map(c => esc(c[0]) + ' ' + esc(c[1])).join(' · ')}</div>`;
+  h += `<div class="parties">${(d.partes || []).map(p => `<div class="party"><span class="mono" style="color:#8a6d1f">${esc(p.tag)}</span><b>${esc(p.nome)}</b>${(p.linhas || []).map(md).join('<br>')}</div>`).join('')}</div>`;
+  if (d.intro) h += `<p>${md(d.intro)}</p>`;
+  (d.clausulas || []).forEach((c, i) => { h += `<div class="cl"><span class="n">${String(i + 1).padStart(2, '0')}</span><h2>${esc(c.titulo)}</h2><span class="mono" style="margin-left:auto;color:#8d887c">${esc(c.ref || 'Cláusula ' + (ORD[i] || i + 1))}</span></div>`;
+    (c.blocos || []).forEach(b => { if (b.tipo === 'p') h += `<p>${md(b.texto)}</p>`; else if (b.tipo === 'destaque') h += `<div class="box">${md(b.texto)}</div>`; else if (b.tipo === 'itens') h += `<ol>${b.itens.map((t, j) => `<li><i>${String(j + 1).padStart(2, '0')}</i><span>${md(t)}</span></li>`).join('')}</ol>`; else if (b.tipo === 'servicos') h += `<div class="grid">${b.itens.map((t, j) => `<div><i>${String(j + 1).padStart(2, '0')}</i><span>${md(t)}</span></div>`).join('')}</div>`; else if (b.tipo === 'pagamento') h += `<div class="pay"><div class="card"><span class="mono" style="color:#3a2c0c">${esc(b.label)}</span><b>${esc(b.destaque)}</b><small>${esc(b.sub)}</small></div><div class="list">${(b.resumo || []).map(r => `<div><span>${md(r[0])}</span><b>${md(r[1])}</b></div>`).join('')}</div></div>`; else if (b.tipo === 'banco') h += `<div class="bank"><div><span class="mono" style="color:#d9b45b">${esc(b.label)}</span><br><b>${esc(b.nome)}</b></div><div style="text-align:right">${(b.linhas || []).map(md).join('<br>')}</div></div>`; }); });
+  if (d.fechamento?.texto) h += `<p style="margin-top:18px">${md(d.fechamento.texto)}</p>`;
+  return h + '</div>'; }
+async function load() {
+  const { data, error } = await sb.rpc('contract_public', { p_token: T, p_ip: IP, p_ua: navigator.userAgent }); if (error || !data) { $('#app').innerHTML = '<div class="card empty"><b>Contrato não encontrado</b>Confira o link ou peça um novo.</div>'; return; } C = data;
+  const signed = C.status === 'signed';
+  $('#app').innerHTML = `<div class="page-title" style="margin-top:22px">${esc(C.company)}</div><div class="page-sub">${esc(C.title)} · ${esc(C.number)} · ${signed ? 'assinado em ' + dt(C.signed_at.slice(0, 10)) : 'leia com calma e assine ao final'}</div>
+  ${renderDoc(C.doc)}
+  ${signed ? `<div class="doc" style="margin-top:12px"><div class="stamp"><b>✔ Assinado eletronicamente</b> por ${esc(C.signer_name)} em ${dt(C.signed_at.slice(0, 10))}<br><span class="mono" style="color:#8d887c">hash ${esc(C.signature_hash)}</span></div></div><div class="card" style="margin-top:14px"><h3>Próximo passo</h3><p style="color:var(--muted);font-size:14px">Você recebeu no WhatsApp o link para criar seu acesso ao painel. Se preferir, entre em <a href="login.html" style="color:var(--accent2)">painel.benhurandrade.com.br</a>.</p></div>`
+  : `<div class="sign"><div class="card"><h3>Assinar contrato</h3><p style="color:var(--muted);font-size:14px;margin-bottom:6px">Preencha seus dados. Você vai receber um código de 6 dígitos no WhatsApp para confirmar a assinatura.</p>
+     <div id="step1"><div class="row2"><label class="f"><span>Nome completo do responsável</span><input id="s_name"></label><label class="f"><span>CPF</span><input id="s_cpf" placeholder="000.000.000-00"></label></div><label class="f"><span>WhatsApp para receber o código ${C.phone_hint ? '(cadastrado: ' + C.phone_hint + ', deixe em branco para usar)' : ''}</span><input id="s_phone" placeholder="DDD + número"></label>
+     <label class="f" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted)"><input type="checkbox" id="s_ok" style="width:18px;margin-top:2px"><span style="margin:0">Li o contrato e concordo com todas as cláusulas. Estou ciente de que esta assinatura eletrônica tem validade jurídica (Lei 14.063/2020) e que meu IP, data e hora serão registrados.</span></label>
+     <div class="err" id="err"></div><button class="btn primary" style="width:100%" onclick="requestOtp()">Receber código e assinar</button></div>
+     <div id="step2" class="hidden"><p style="color:var(--muted);font-size:14px">Digite o código enviado para <b id="hint"></b>.</p><div class="otp">${[...Array(6)].map((_, i) => `<input maxlength="1" inputmode="numeric" data-i="${i}">`).join('')}</div><div class="err" id="err2"></div><button class="btn primary" style="width:100%" onclick="sign()">Confirmar assinatura</button><p class="hint" style="text-align:center"><a onclick="requestOtp(true)" style="color:var(--accent2);cursor:pointer">Reenviar código</a></p></div></div></div>`}`;
+  $$('.otp input').forEach((inp, i, arr) => { inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, ''); if (inp.value && arr[i + 1]) arr[i + 1].focus(); }); inp.addEventListener('keydown', e => { if (e.key === 'Backspace' && !inp.value && arr[i - 1]) arr[i - 1].focus(); }); inp.addEventListener('paste', e => { const t = (e.clipboardData.getData('text') || '').replace(/\D/g, ''); if (t.length === 6) { arr.forEach((x, j) => x.value = t[j]); e.preventDefault(); } }); });
+}
+async function requestOtp(resend) { $('#err').textContent = ''; if (!resend) { if (!$('#s_name').value.trim() || !$('#s_cpf').value.trim()) { $('#err').textContent = 'Preencha nome e CPF.'; return; } if (!$('#s_ok').checked) { $('#err').textContent = 'Marque que leu e concorda.'; return; } }
+  const { data, error } = await sb.rpc('contract_request_otp', { p_token: T, p_name: $('#s_name').value.trim(), p_cpf: $('#s_cpf').value.trim(), p_phone: $('#s_phone').value.trim() || null }); if (error) { $('#err').textContent = error.message; return; }
+  $('#hint').textContent = data.phone_hint; $('#step1').classList.add('hidden'); $('#step2').classList.remove('hidden'); $$('.otp input')[0].focus(); toast('Código enviado', 'ok'); }
+async function sign() { const code = $$('.otp input').map(i => i.value).join(''); if (code.length < 6) { $('#err2').textContent = 'Digite os 6 dígitos.'; return; }
+  const { data, error } = await sb.rpc('contract_sign', { p_token: T, p_code: code, p_ip: IP, p_ua: navigator.userAgent }); if (error) { $('#err2').textContent = error.message; return; }
+  toast('Contrato assinado', 'ok'); await load(); if (data.onboarding_link) $('#app').insertAdjacentHTML('beforeend', `<div class="card" style="margin-top:14px;border-color:var(--accent)"><h3>Crie seu acesso agora</h3><p style="color:var(--muted);font-size:14px">O mesmo link foi enviado no seu WhatsApp.</p><a class="btn primary" style="margin-top:12px" href="${data.onboarding_link}">Criar meu acesso ao painel</a></div>`); }
+load();
+</script></body></html>

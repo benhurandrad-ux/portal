@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Editor de Contrato</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script src="config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#070707;--bg2:#0c0c0d;--surface:#121214;--surface2:#19191c;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);--text:#f2efe8;--muted:#9a968c;--gold:#d9b45b;--gold2:#8a6d1f;--gold-soft:#F6EFD9;--ink:#1c1b18;--ink2:#4a4741;--pline:#e7e3d8;--black:#0b0b0b}
@@ -110,7 +111,7 @@ ol.items li i{font-style:normal;font-weight:700;color:var(--gold2);font-size:7.5
   <button class="btn" onclick="novo()">Novo em branco</button>
   <input type="file" id="imp" accept="application/json" style="display:none" onchange="importar(this)"><button class="btn" onclick="document.getElementById('imp').click()">Importar JSON</button>
   <button class="btn" onclick="exportar()">Exportar JSON</button>
-  <button class="btn gold" onclick="window.print()">Gerar PDF</button>
+  <button class="btn" id="btnSave" onclick="salvarNoSistema()" style="display:none">Salvar revisão</button><button class="btn gold" id="btnSend" onclick="enviarAoCliente()" style="display:none">Salvar e enviar ao cliente</button><button class="btn gold" onclick="window.print()">Gerar PDF</button>
 </header>
 <aside id="form"></aside>
 <main><div class="page" id="page"></div></main>
@@ -165,6 +166,28 @@ const PADRAO = {
 };
 
 let doc = load();
+/* ===== integração com o sistema (admin) ===== */
+const CID = new URLSearchParams(location.search).get('contrato'); let SB = null, CT = null;
+async function carregarDoSistema(){ if(!CID||!window.supabase||!window.PORTAL) return; SB = window.supabase.createClient(PORTAL.url, PORTAL.anonKey);
+  const {data:{session}} = await SB.auth.getSession(); if(!session){ alert('Entre no admin primeiro.'); return; }
+  const {data:c} = await SB.from('contracts').select('*, companies(*), contract_services(service_key, services_catalog(label))').eq('id',CID).single(); if(!c) return; CT=c;
+  document.getElementById('btnSave').style.display='inline-flex'; document.getElementById('btnSend').style.display='inline-flex';
+  document.getElementById('status').textContent = c.number+' · '+c.companies.name+(c.status==='signed'?' · ASSINADO':'');
+  if(c.doc){ doc=c.doc; } else { doc=structuredClone(PADRAO); const co=c.companies; const fmt=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+    doc.meta.campos=[["Data",new Date(c.start_date+'T12:00:00').toLocaleDateString('pt-BR')],["Vigência",c.months+" meses"],["Local","Belo Horizonte/MG"],["Contrato",c.number]]; doc.meta.cabecalho_dir="Contrato de Marketing Digital · "+co.name;
+    doc.partes[1]={tag:"(II) Contratante",nome:(co.legal_name||co.name).toUpperCase(),linhas:[(co.entity_type?co.entity_type+' · ':'')+'CNPJ '+(co.cnpj||''), [co.address,co.city&&co.state?co.city+'/'+co.state:co.city,co.cep?'CEP '+co.cep:''].filter(Boolean).join(', ')+'. Neste ato representada por seus representantes legais.']};
+    doc.intro="**WORLDX** e **"+co.name.toUpperCase()+"** resolvem, de comum acordo, celebrar o presente contrato de prestação de serviços de estratégia e serviços de marketing, que será regido pelos termos, cláusulas e condições a seguir.";
+    const serv=c.contract_services.map(x=>x.services_catalog?.label||x.service_key); if(serv.length){ const b=doc.clausulas[0].blocos.find(b=>b.tipo==='servicos'); if(b) b.itens=serv; }
+    const redes=[co.instagram,co.facebook,co.tiktok].filter(Boolean).map(r=>'=='+r+'==').join(' e ');
+    doc.clausulas[0].blocos[2].texto="Os serviços supramencionados serão relativos às redes digitais da **CONTRATANTE** no Instagram, Facebook e TikTok ( "+(redes||'==@perfil==')+" ), incluindo senhas, logins e todo conteúdo de caráter pessoal e sigiloso, preservando a imagem da instituição e estando em conformidade com as Leis 8.078/1990 (Código de Defesa do Consumidor), 4.680/1965 (regulamentação da atividade publicitária), com o Código Brasileiro de Autorregulamentação Publicitária e com a Lei 13.709/2018 (Lei Geral de Proteção de Dados).";
+    const cl4=doc.clausulas.find(x=>/prazos/i.test(x.titulo)); if(cl4) cl4.blocos[0].texto="4.1 O início da prestação de serviços se dará a partir da assinatura deste contrato, em "+new Date(c.start_date+'T12:00:00').toLocaleDateString('pt-BR')+", com prazo de vigência de "+c.months+" meses, encerrando-se em "+new Date(c.end_date+'T12:00:00').toLocaleDateString('pt-BR')+".";
+    const cl6=doc.clausulas.find(x=>/pagamento/i.test(x.titulo)); if(cl6){ cl6.blocos[0].texto="Pela integralidade dos serviços prestados, a **CONTRATANTE** pagará à **CONTRATADA** "+c.months+" parcelas mensais de **"+fmt(c.monthly_amount)+"**, com vencimento todo dia "+c.due_day+" de cada mês, a partir de "+new Date(c.start_date+'T12:00:00').toLocaleDateString('pt-BR')+"."; const pg=cl6.blocos.find(b=>b.tipo==='pagamento'); if(pg){ pg.destaque=c.months+"x de "+fmt(c.monthly_amount); pg.sub="Vencimento todo dia "+c.due_day+" · reavaliação a partir do 6º mês"; pg.resumo=[["Parcelas mensais",fmt(c.monthly_amount)],["Primeiro vencimento",new Date(c.start_date+'T12:00:00').toLocaleDateString('pt-BR')]]; } }
+    doc.fechamento.data="Belo Horizonte, "+new Date(c.start_date+'T12:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'})+".";
+    doc.assinaturas[1].nome=(co.legal_name||co.name).toUpperCase(); }
+  buildForm(); render(); }
+async function salvarNoSistema(){ if(!SB||!CID) return; const {error}=await SB.from('contracts').update({doc, reviewed_at:new Date().toISOString()}).eq('id',CID); document.getElementById('status').textContent = error? 'erro: '+error.message : 'salvo no sistema '+new Date().toLocaleTimeString('pt-BR'); return !error; }
+async function enviarAoCliente(){ if(!(await salvarNoSistema())) return; if(!confirm('Enviar o contrato para o cliente ler e assinar? Ele recebe o link no WhatsApp cadastrado.')) return; const {data,error}=await SB.rpc('contract_send',{p_contract:CID}); if(error){ alert(error.message); return; } prompt('Contrato enviado. Link do cliente (copiado):', data.link); navigator.clipboard.writeText(data.link).catch(()=>{}); }
+carregarDoSistema();
 function load(){try{const s=localStorage.getItem('contrato_doc');if(s)return JSON.parse(s)}catch(e){}return structuredClone(PADRAO)}
 function save(){try{localStorage.setItem('contrato_doc',JSON.stringify(doc))}catch(e){} document.getElementById('status').textContent='salvo '+new Date().toLocaleTimeString('pt-BR')}
 function novo(){if(!confirm('Começar um contrato em branco? O atual fica no JSON exportado.'))return;
