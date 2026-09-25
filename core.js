@@ -60,3 +60,11 @@ function folderCrumb(name, backFn, extra = '') { return `<div class="toolbar" st
 /* tabelas: rótulo de cada célula (vira cartão no celular) */
 function labelTables(root = document) { root.querySelectorAll('table').forEach(t => { const hs = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim()); if (!hs.length) return; t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if (!td.hasAttribute('data-l')) td.setAttribute('data-l', hs[i] || ''); })); }); }
 new MutationObserver(() => { clearTimeout(window._lt); window._lt = setTimeout(labelTables, 30); }).observe(document.documentElement, { childList: true, subtree: true });
+
+/* ===== logo da empresa ===== */
+const logoSrc = co => co?.logo_url ? publicUrl('logos', co.logo_url) : null;
+function logoPill(co, big) { const u = logoSrc(co); return u ? `<span class="logo-pill ${big ? 'big' : ''}"><img src="${esc(u)}" alt="${esc(co.name || '')}"></span>` : ''; }
+async function uploadCompanyLogo(companyId, file) { if (!file || !(file.type || '').startsWith('image/')) { toast('Envie uma imagem (PNG, JPG, SVG ou WEBP)', 'bad'); return null; }
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase(); const path = `${companyId}/logo_${Date.now()}.${ext}`;
+  const up = await sb.storage.from('logos').upload(path, file, { upsert: true, contentType: file.type }); if (up.error) { toast('Logo: ' + up.error.message, 'bad'); return null; }
+  const { error } = await sb.from('companies').update({ logo_url: path }).eq('id', companyId); if (error) { toast(error.message, 'bad'); return null; } return path; }

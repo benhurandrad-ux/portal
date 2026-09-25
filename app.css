@@ -367,3 +367,16 @@ td .btn.sm{margin:2px 0}
 .poster .pick{position:absolute;top:8px;right:8px;z-index:4;width:28px;height:28px;border-radius:8px;border:2px solid rgba(255,255,255,.8);background:rgba(0,0,0,.4);display:grid;place-items:center;font-weight:800;color:#141006}
 .poster.picked{outline:3px solid var(--accent);outline-offset:-3px}.poster.picked .pick{background:var(--accent);border-color:var(--accent)}
 body:has(.admin-bar) #toast{bottom:104px}@media(max-width:820px){body:has(.admin-bar) #toast{bottom:150px}}
+
+/* ===== logo ===== */
+.logo-pill{display:inline-flex;align-items:center;background:#fff;border-radius:8px;padding:4px 9px;height:30px;box-shadow:0 1px 0 rgba(255,255,255,.08) inset}
+.logo-pill img{height:21px;width:auto;max-width:132px;object-fit:contain;display:block}
+.logo-pill.big{height:54px;padding:8px 14px;border-radius:12px}.logo-pill.big img{height:38px;max-width:240px}
+.brand .co{gap:10px}
+.logo-prev:has(img){background:#fff;padding:6px}
+.logo-drop{border:1.5px dashed var(--line2);border-radius:12px;padding:14px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:.2s}
+.logo-drop:hover,.logo-drop.over{border-color:var(--accent);background:rgba(217,180,91,.05)}
+@media(max-width:820px){.brand .co{display:flex!important;border-left:0;padding-left:0}.brand .co .co-name{display:none}.logo-pill img{max-width:96px}}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.brand .co .logo-pill img{width:auto;height:21px;max-width:132px;object-fit:contain;border-radius:0}
+@media(max-width:520px){.nav .brand>b{display:none}.nav .brand{gap:10px}.brand .co .logo-pill img{max-width:110px;height:19px}.nav .right{gap:10px}}
