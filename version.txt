@@ -1,1 +1,1 @@
-v1.5 2026-09-28 faturas em PDF + novo contrato
+v1.6 2026-09-28 faturas: acoes dentro do cartao

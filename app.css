@@ -350,7 +350,7 @@ td .btn.sm{margin:2px 0}
   .card table:not(.nostack) td:last-child:has(.btn){flex-wrap:wrap;justify-content:flex-end;gap:6px}
   .card table:not(.nostack) td:last-child:has(.btn)::before{display:none}
 }
-.chk{display:inline-flex!important;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;width:auto!important;justify-content:flex-start;margin:0}.chk input{width:16px!important;height:16px;flex:0 0 16px;margin:0;padding:0}
+.chk{display:inline-flex!important;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;width:auto!important;justify-content:flex-start;margin:0}.chk input{width:16px!important;min-width:0!important;height:16px;flex:0 0 16px;margin:0;padding:0}
 .trash{position:absolute;top:10px;right:10px;z-index:4;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(10,10,12,.72);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);color:#f2efe8;cursor:pointer;opacity:.85;transition:background .2s,color .2s,opacity .2s,transform .2s}
 .trash:hover{background:rgba(255,93,108,.92);color:#fff;border-color:transparent;opacity:1;transform:scale(1.06)}
 .trash:focus-visible{outline:2px solid var(--bad);outline-offset:2px}
@@ -387,3 +387,22 @@ body:has(.admin-bar) #toast{bottom:104px}@media(max-width:820px){body:has(.admin
 .logo-prev:has(img){background:var(--surface2)!important;padding:6px}
 .brand .co .logo-pill img{height:24px;max-width:150px}
 @media(max-width:520px){.brand .co .logo-pill img{height:20px;max-width:120px}}
+
+/* faturas: ações quebram linha dentro do cartão (2026-09-28) */
+td.nw{white-space:nowrap}
+td.acts{text-align:right}
+.acts-in{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;min-width:120px;margin-left:auto}
+@media (min-width:1240px){.acts-in{flex-wrap:nowrap}}
+@media (min-width:821px){table.inv th,table.inv td{padding-left:8px;padding-right:8px}}
+.acts-in .btn.sm{margin:0}
+.card:has(>table){overflow-x:auto}
+@media (max-width:820px){.acts-in{max-width:none;min-width:0;width:100%}.card:has(>table){overflow-x:visible}}
+@media (min-width:821px) and (max-width:1000px){
+  .card table.inv{display:block}.card table.inv thead{display:none}.card table.inv tbody{display:block}
+  .card table.inv tr{display:block;border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:0 0 10px;background:var(--surface2)}
+  .card table.inv td{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);text-align:right}
+  .card table.inv td:last-child{border-bottom:0}
+  .card table.inv td::before{content:attr(data-l);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;text-align:left}
+  .card table.inv td.acts::before,.card table.inv td[colspan]::before{display:none}
+  .card table.inv .acts-in{width:100%;min-width:0}
+}
