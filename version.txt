@@ -1,1 +1,1 @@
-v1.4 2026-09-25 logo PNG transparente
+v1.5 2026-09-28 faturas em PDF + novo contrato
